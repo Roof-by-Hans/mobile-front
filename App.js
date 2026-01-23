@@ -1,5 +1,15 @@
+import React from 'react';
+import { AuthProvider } from './src/context/AuthContext';
 import AppNavigator from './src/navigation/AppNavigator';
 
+/**
+ * Main App Component
+ * Wraps navigation with authentication context provider
+ */
 export default function App() {
-  return <AppNavigator />;
+  return (
+    <AuthProvider>
+      <AppNavigator />
+    </AuthProvider>
+  );
 }
