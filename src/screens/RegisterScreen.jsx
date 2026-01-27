@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
   StyleSheet,
   ActivityIndicator,
   Alert,
@@ -13,34 +12,141 @@ import {
 import PropTypes from 'prop-types';
 import { useAuth } from '../context/AuthContext';
 import Button from '../components/Button';
+import Input from '../components/Input';
+import { COLORS, SPACING, FONT_SIZES, BORDER_RADIUS, FONT_WEIGHTS } from '../constants/theme';
 
 /**
  * Register Screen Component
- * Handles new user registration
+ * Handles new user registration with full validation
  */
 const RegisterScreen = ({ navigation }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [errors, setErrors] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
   const { register, isLoading } = useAuth();
+
+  /**
+   * Validate name
+   * @param {string} name - Name to validate
+   * @returns {boolean} - True if valid
+   */
+  const validateName = (name) => {
+    return name.trim().length >= 2;
+  };
+
+  /**
+   * Validate email format
+   * @param {string} email - Email to validate
+   * @returns {boolean} - True if valid
+   */
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  /**
+   * Validate password strength
+   * @param {string} password - Password to validate
+   * @returns {boolean} - True if valid
+   */
+  const validatePassword = (password) => {
+    return password.length >= 6;
+  };
+
+  /**
+   * Handle name blur - validate name
+   */
+  const handleNameBlur = () => {
+    if (name && !validateName(name)) {
+      setErrors((prev) => ({ ...prev, name: 'El nombre debe tener al menos 2 caracteres' }));
+    } else {
+      setErrors((prev) => ({ ...prev, name: '' }));
+    }
+  };
+
+  /**
+   * Handle email blur - validate email
+   */
+  const handleEmailBlur = () => {
+    if (email && !validateEmail(email)) {
+      setErrors((prev) => ({ ...prev, email: 'Email inválido' }));
+    } else {
+      setErrors((prev) => ({ ...prev, email: '' }));
+    }
+  };
+
+  /**
+   * Handle password blur - validate password
+   */
+  const handlePasswordBlur = () => {
+    if (password && !validatePassword(password)) {
+      setErrors((prev) => ({
+        ...prev,
+        password: 'La contraseña debe tener al menos 6 caracteres',
+      }));
+    } else {
+      setErrors((prev) => ({ ...prev, password: '' }));
+    }
+  };
+
+  /**
+   * Handle confirm password blur - validate match
+   */
+  const handleConfirmPasswordBlur = () => {
+    if (confirmPassword && confirmPassword !== password) {
+      setErrors((prev) => ({ ...prev, confirmPassword: 'Las contraseñas no coinciden' }));
+    } else {
+      setErrors((prev) => ({ ...prev, confirmPassword: '' }));
+    }
+  };
 
   /**
    * Handle registration form submission
    */
   const handleRegister = async () => {
-    if (!name || !email || !password || !confirmPassword) {
-      Alert.alert('Error', 'Por favor completa todos los campos');
-      return;
+    // Validate all fields
+    const newErrors = {
+      name: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+    };
+
+    if (!name) {
+      newErrors.name = 'El nombre es requerido';
+    } else if (!validateName(name)) {
+      newErrors.name = 'El nombre debe tener al menos 2 caracteres';
     }
 
-    if (password !== confirmPassword) {
-      Alert.alert('Error', 'Las contraseñas no coinciden');
-      return;
+    if (!email) {
+      newErrors.email = 'El email es requerido';
+    } else if (!validateEmail(email)) {
+      newErrors.email = 'Email inválido';
     }
 
-    if (password.length < 6) {
-      Alert.alert('Error', 'La contraseña debe tener al menos 6 caracteres');
+    if (!password) {
+      newErrors.password = 'La contraseña es requerida';
+    } else if (!validatePassword(password)) {
+      newErrors.password = 'La contraseña debe tener al menos 6 caracteres';
+    }
+
+    if (!confirmPassword) {
+      newErrors.confirmPassword = 'Confirma tu contraseña';
+    } else if (password !== confirmPassword) {
+      newErrors.confirmPassword = 'Las contraseñas no coinciden';
+    }
+
+    setErrors(newErrors);
+
+    // If there are errors, don't submit
+    if (newErrors.name || newErrors.email || newErrors.password || newErrors.confirmPassword) {
       return;
     }
 
@@ -66,59 +172,90 @@ const RegisterScreen = ({ navigation }) => {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
         <View style={styles.content}>
-          <Text style={styles.title}>Crear Cuenta</Text>
-          <Text style={styles.subtitle}>Únete a nosotros</Text>
+          {/* Logo placeholder */}
+          <View style={styles.logoContainer}>
+            <View style={styles.logoPlaceholder} />
+          </View>
 
-          <TextInput
-            style={styles.input}
-            placeholder="Nombre completo"
-            value={name}
-            onChangeText={setName}
-            editable={!isLoading}
-          />
+          <View style={styles.formContainer}>
+            <Text style={styles.subtitle}>Únete a nosotros y crea tu cuenta.</Text>
 
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            editable={!isLoading}
-          />
-
-          <TextInput
-            style={styles.input}
-            placeholder="Contraseña"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            editable={!isLoading}
-          />
-
-          <TextInput
-            style={styles.input}
-            placeholder="Confirmar contraseña"
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            secureTextEntry
-            editable={!isLoading}
-          />
-
-          {isLoading ? (
-            <ActivityIndicator size="large" color="#007AFF" />
-          ) : (
-            <>
-              <Button title="Registrarse" onPress={handleRegister} />
-              <Button
-                title="¿Ya tienes cuenta? Inicia sesión"
-                onPress={goToLogin}
-                variant="secondary"
+            <View style={styles.inputsContainer}>
+              <Input
+                placeholder="Nombre completo"
+                value={name}
+                onChangeText={(text) => {
+                  setName(text);
+                  if (errors.name) setErrors((prev) => ({ ...prev, name: '' }));
+                }}
+                editable={!isLoading}
+                error={errors.name}
+                onBlur={handleNameBlur}
               />
-            </>
-          )}
+
+              <Input
+                placeholder="Correo electrónico"
+                value={email}
+                onChangeText={(text) => {
+                  setEmail(text);
+                  if (errors.email) setErrors((prev) => ({ ...prev, email: '' }));
+                }}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                editable={!isLoading}
+                error={errors.email}
+                onBlur={handleEmailBlur}
+              />
+
+              <Input
+                placeholder="Contraseña"
+                value={password}
+                onChangeText={(text) => {
+                  setPassword(text);
+                  if (errors.password) setErrors((prev) => ({ ...prev, password: '' }));
+                }}
+                secureTextEntry
+                editable={!isLoading}
+                error={errors.password}
+                onBlur={handlePasswordBlur}
+              />
+
+              <Input
+                placeholder="Confirmar contraseña"
+                value={confirmPassword}
+                onChangeText={(text) => {
+                  setConfirmPassword(text);
+                  if (errors.confirmPassword)
+                    setErrors((prev) => ({ ...prev, confirmPassword: '' }));
+                }}
+                secureTextEntry
+                editable={!isLoading}
+                error={errors.confirmPassword}
+                onBlur={handleConfirmPasswordBlur}
+              />
+            </View>
+
+            {isLoading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={COLORS.text} />
+              </View>
+            ) : (
+              <View style={styles.buttonsContainer}>
+                <Button title="Crear cuenta" onPress={handleRegister} />
+                <View style={styles.loginLinkContainer}>
+                  <Text style={styles.loginText}>¿Ya tienes cuenta? </Text>
+                  <Text style={styles.loginLink} onPress={goToLogin}>
+                    Inicia sesión
+                  </Text>
+                </View>
+              </View>
+            )}
+          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -132,37 +269,63 @@ RegisterScreen.propTypes = {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.background,
   },
   scrollContent: {
     flexGrow: 1,
   },
   content: {
     flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 32,
+    paddingHorizontal: SPACING.lg,
+    paddingTop: 60,
+    paddingBottom: SPACING.xl,
   },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    textAlign: 'center',
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: SPACING.xl,
+  },
+  logoPlaceholder: {
+    width: 231,
+    height: 206,
+    backgroundColor: COLORS.backgroundCard,
+    borderRadius: BORDER_RADIUS.lg,
+  },
+  formContainer: {
+    flex: 1,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 32,
+    fontSize: FONT_SIZES.md,
+    color: COLORS.textSecondary,
     textAlign: 'center',
+    marginBottom: SPACING.xl,
+    fontWeight: FONT_WEIGHTS.regular,
   },
-  input: {
-    height: 50,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    marginBottom: 16,
-    fontSize: 16,
+  inputsContainer: {
+    marginBottom: SPACING.md,
+  },
+  loadingContainer: {
+    paddingVertical: SPACING.lg,
+    alignItems: 'center',
+  },
+  buttonsContainer: {
+    gap: SPACING.md,
+  },
+  loginLinkContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: SPACING.md,
+  },
+  loginText: {
+    fontSize: FONT_SIZES.sm,
+    color: COLORS.textSecondary,
+    fontWeight: FONT_WEIGHTS.regular,
+  },
+  loginLink: {
+    fontSize: FONT_SIZES.sm,
+    color: COLORS.text,
+    fontWeight: FONT_WEIGHTS.bold,
+    textDecorationLine: 'underline',
   },
 });
 
