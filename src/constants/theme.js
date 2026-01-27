@@ -4,28 +4,41 @@
  */
 
 export const COLORS = {
-  primary: '#007AFF',
-  secondary: '#5856D6',
-  success: '#34C759',
-  danger: '#FF3B30',
+  // Primary colors from Figma
+  primary: '#1F2937',
+  secondary: '#374151',
+  gold: '#FFD700',
+  
+  // Status colors
+  success: '#22C55E',
+  danger: '#EF4444',
   warning: '#FF9500',
   info: '#5AC8FA',
   
   // Neutral colors
   white: '#FFFFFF',
   black: '#000000',
-  gray: '#8E8E93',
+  gray: '#9CA3AF',
   lightGray: '#E5E5EA',
-  darkGray: '#3A3A3C',
+  darkGray: '#1C1C1C',
+  slateGray: '#94A3B8',
   
   // Background colors
-  background: '#FFFFFF',
-  backgroundSecondary: '#F2F2F7',
+  background: '#1C1C1C',
+  backgroundLight: '#FFFFFF',
+  backgroundCard: 'rgba(30, 41, 59, 0.3)',
   
   // Text colors
-  text: '#000000',
-  textSecondary: '#8E8E93',
+  text: '#FFFFFF',
+  textSecondary: '#9CA3AF',
+  textMuted: '#94A3B8',
   textLight: '#FFFFFF',
+  textDark: '#000000',
+  inputPlaceholder: '#757575',
+  
+  // Button colors
+  buttonBackground: '#1F2937',
+  buttonText: '#BBBEC5',
 };
 
 export const SPACING = {

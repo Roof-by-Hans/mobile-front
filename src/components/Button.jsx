@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
 import PropTypes from 'prop-types';
-import { COLORS, SPACING, FONT_SIZES, BORDER_RADIUS } from '../constants/theme';
+import { COLORS, SPACING, FONT_SIZES, BORDER_RADIUS, FONT_WEIGHTS } from '../constants/theme';
 
 /**
  * Reusable Button component
@@ -65,10 +65,16 @@ const styles = StyleSheet.create({
     borderRadius: BORDER_RADIUS.md,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 48,
+    minHeight: 57,
+    width: '100%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   buttonPrimary: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.buttonBackground,
   },
   buttonSecondary: {
     backgroundColor: COLORS.secondary,
@@ -82,17 +88,17 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.lightGray,
   },
   buttonPressed: {
-    opacity: 0.7,
+    opacity: 0.8,
   },
   text: {
-    color: COLORS.white,
+    color: COLORS.text,
     fontSize: FONT_SIZES.md,
-    fontWeight: '600',
+    fontWeight: FONT_WEIGHTS.bold,
   },
   textOutline: {
     color: COLORS.primary,
     fontSize: FONT_SIZES.md,
-    fontWeight: '600',
+    fontWeight: FONT_WEIGHTS.bold,
   },
 });
 

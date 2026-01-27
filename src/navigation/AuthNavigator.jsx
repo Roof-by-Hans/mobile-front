@@ -28,11 +28,7 @@ const AuthNavigator = () => {
         name="Register"
         component={RegisterScreen}
         options={{
-          title: 'Registro',
-          headerStyle: {
-            backgroundColor: '#fff',
-          },
-          headerTintColor: '#007AFF',
+          headerShown: false,
         }}
       />
     </Stack.Navigator>

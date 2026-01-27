@@ -10,9 +10,6 @@ import MainTabNavigator from './MainTabNavigator';
  * Handles conditional routing based on authentication state
  * - Unauthenticated users: AuthNavigator (Login/Register)
  * - Authenticated users: MainTabNavigator (Home/Search/Profile/Settings)
- * 
- * NOTA: Actualmente mostrando MainTabNavigator directamente para desarrollo
- * Para activar autenticación, descomentar la lógica condicional
  */
 const AppNavigator = () => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -28,11 +25,7 @@ const AppNavigator = () => {
 
   return (
     <NavigationContainer>
-      {/* Mostrando tabs directamente para desarrollo */}
-      <MainTabNavigator />
-      
-      {/* Descomentar para activar flujo de autenticación: */}
-      {/* {isAuthenticated ? <MainTabNavigator /> : <AuthNavigator />} */}
+      {isAuthenticated ? <MainTabNavigator /> : <AuthNavigator />}
     </NavigationContainer>
   );
 };
