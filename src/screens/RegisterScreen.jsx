@@ -18,19 +18,24 @@ import { COLORS, SPACING, FONT_SIZES, BORDER_RADIUS, FONT_WEIGHTS } from '../con
 /**
  * Register Screen Component
  * Handles new user registration with full validation
+ * Campos requeridos por el API: nombre, apellido, email, contrasena
  */
 const RegisterScreen = ({ navigation }) => {
-  const [name, setName] = useState('');
+  const [nombre, setNombre] = useState('');
+  const [apellido, setApellido] = useState('');
+  const [telefono, setTelefono] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState({
-    name: '',
+    nombre: '',
+    apellido: '',
+    telefono: '',
     email: '',
     password: '',
     confirmPassword: '',
   });
-  const { register, isLoading } = useAuth();
+  const { register, isLoading, error: authError } = useAuth();
 
   /**
    * Validate name
@@ -39,6 +44,16 @@ const RegisterScreen = ({ navigation }) => {
    */
   const validateName = (name) => {
     return name.trim().length >= 2;
+  };
+
+  /**
+   * Validate phone (optional)
+   * @param {string} phone - Phone to validate
+   * @returns {boolean} - True if valid or empty
+   */
+  const validatePhone = (phone) => {
+    if (!phone) return true; // Es opcional
+    return phone.trim().length >= 8;
   };
 
   /**
@@ -61,13 +76,35 @@ const RegisterScreen = ({ navigation }) => {
   };
 
   /**
-   * Handle name blur - validate name
+   * Handle nombre blur - validate nombre
    */
-  const handleNameBlur = () => {
-    if (name && !validateName(name)) {
-      setErrors((prev) => ({ ...prev, name: 'El nombre debe tener al menos 2 caracteres' }));
+  const handleNombreBlur = () => {
+    if (nombre && !validateName(nombre)) {
+      setErrors((prev) => ({ ...prev, nombre: 'El nombre debe tener al menos 2 caracteres' }));
     } else {
-      setErrors((prev) => ({ ...prev, name: '' }));
+      setErrors((prev) => ({ ...prev, nombre: '' }));
+    }
+  };
+
+  /**
+   * Handle apellido blur - validate apellido
+   */
+  const handleApellidoBlur = () => {
+    if (apellido && !validateName(apellido)) {
+      setErrors((prev) => ({ ...prev, apellido: 'El apellido debe tener al menos 2 caracteres' }));
+    } else {
+      setErrors((prev) => ({ ...prev, apellido: '' }));
+    }
+  };
+
+  /**
+   * Handle telefono blur - validate telefono
+   */
+  const handleTelefonoBlur = () => {
+    if (telefono && !validatePhone(telefono)) {
+      setErrors((prev) => ({ ...prev, telefono: 'El teléfono debe tener al menos 8 caracteres' }));
+    } else {
+      setErrors((prev) => ({ ...prev, telefono: '' }));
     }
   };
 
@@ -113,16 +150,28 @@ const RegisterScreen = ({ navigation }) => {
   const handleRegister = async () => {
     // Validate all fields
     const newErrors = {
-      name: '',
+      nombre: '',
+      apellido: '',
+      telefono: '',
       email: '',
       password: '',
       confirmPassword: '',
     };
 
-    if (!name) {
-      newErrors.name = 'El nombre es requerido';
-    } else if (!validateName(name)) {
-      newErrors.name = 'El nombre debe tener al menos 2 caracteres';
+    if (!nombre) {
+      newErrors.nombre = 'El nombre es requerido';
+    } else if (!validateName(nombre)) {
+      newErrors.nombre = 'El nombre debe tener al menos 2 caracteres';
+    }
+
+    if (!apellido) {
+      newErrors.apellido = 'El apellido es requerido';
+    } else if (!validateName(apellido)) {
+      newErrors.apellido = 'El apellido debe tener al menos 2 caracteres';
+    }
+
+    if (telefono && !validatePhone(telefono)) {
+      newErrors.telefono = 'El teléfono debe tener al menos 8 caracteres';
     }
 
     if (!email) {
@@ -146,17 +195,32 @@ const RegisterScreen = ({ navigation }) => {
     setErrors(newErrors);
 
     // If there are errors, don't submit
-    if (newErrors.name || newErrors.email || newErrors.password || newErrors.confirmPassword) {
+    if (Object.values(newErrors).some(error => error !== '')) {
       return;
     }
 
     try {
-      // TODO: Integrate with backend API
-      // Expected request: { name, email, password }
-      // Expected response: { id, email, name, token }
-      await register({ name, email, token: 'dummy-token' });
+      // Datos del cliente según el API: POST /api/clientes
+      // Campos requeridos: nombre, apellido, email, contrasena
+      // Campos opcionales: telefono, idTarjeta, preferencias, fotoPerfil
+      const userData = {
+        nombre,
+        apellido,
+        email,
+        contrasena: password,
+      };
+      
+      // Agregar teléfono solo si está presente
+      if (telefono) {
+        userData.telefono = telefono;
+      }
+      
+      await register(userData);
+      // El AuthContext ya maneja el login automático después del registro exitoso
+      // No necesitamos navegar manualmente, el estado isAuthenticated cambiará
     } catch (error) {
-      Alert.alert('Error', 'No se pudo completar el registro');
+      const errorMsg = error.response?.data?.message || error.message || 'No se pudo completar el registro';
+      Alert.alert('Error de registro', errorMsg);
     }
   };
 
@@ -187,15 +251,40 @@ const RegisterScreen = ({ navigation }) => {
 
             <View style={styles.inputsContainer}>
               <Input
-                placeholder="Nombre completo"
-                value={name}
+                placeholder="Nombre"
+                value={nombre}
                 onChangeText={(text) => {
-                  setName(text);
-                  if (errors.name) setErrors((prev) => ({ ...prev, name: '' }));
+                  setNombre(text);
+                  if (errors.nombre) setErrors((prev) => ({ ...prev, nombre: '' }));
                 }}
                 editable={!isLoading}
-                error={errors.name}
-                onBlur={handleNameBlur}
+                error={errors.nombre}
+                onBlur={handleNombreBlur}
+              />
+
+              <Input
+                placeholder="Apellido"
+                value={apellido}
+                onChangeText={(text) => {
+                  setApellido(text);
+                  if (errors.apellido) setErrors((prev) => ({ ...prev, apellido: '' }));
+                }}
+                editable={!isLoading}
+                error={errors.apellido}
+                onBlur={handleApellidoBlur}
+              />
+
+              <Input
+                placeholder="Teléfono (opcional)"
+                value={telefono}
+                onChangeText={(text) => {
+                  setTelefono(text);
+                  if (errors.telefono) setErrors((prev) => ({ ...prev, telefono: '' }));
+                }}
+                keyboardType="phone-pad"
+                editable={!isLoading}
+                error={errors.telefono}
+                onBlur={handleTelefonoBlur}
               />
 
               <Input

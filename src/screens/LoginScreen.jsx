@@ -18,12 +18,13 @@ import { COLORS, SPACING, FONT_SIZES, BORDER_RADIUS, FONT_WEIGHTS } from '../con
 /**
  * Login Screen Component
  * Handles user authentication with email/password validation
+ * Integrado con backend en http://localhost:3000/api/auth-cliente/login
  */
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({ email: '', password: '' });
-  const { login, isLoading } = useAuth();
+  const { login, isLoading, error: authError } = useAuth();
 
   /**
    * Validate email format
@@ -41,7 +42,7 @@ const LoginScreen = ({ navigation }) => {
    * @returns {boolean} - True if valid
    */
   const validatePassword = (password) => {
-    return password.length >= 6;
+    return password.length >= 4;
   };
 
   /**
@@ -49,7 +50,7 @@ const LoginScreen = ({ navigation }) => {
    */
   const handleEmailBlur = () => {
     if (email && !validateEmail(email)) {
-      setErrors((prev) => ({ ...prev, email: 'Email inválido' }));
+      setErrors((prev) => ({ ...prev, email: 'El email no es válido' }));
     } else {
       setErrors((prev) => ({ ...prev, email: '' }));
     }
@@ -60,7 +61,7 @@ const LoginScreen = ({ navigation }) => {
    */
   const handlePasswordBlur = () => {
     if (password && !validatePassword(password)) {
-      setErrors((prev) => ({ ...prev, password: 'La contraseña debe tener al menos 6 caracteres' }));
+      setErrors((prev) => ({ ...prev, password: 'La contraseña debe tener al menos 4 caracteres' }));
     } else {
       setErrors((prev) => ({ ...prev, password: '' }));
     }
@@ -76,13 +77,13 @@ const LoginScreen = ({ navigation }) => {
     if (!email) {
       newErrors.email = 'El email es requerido';
     } else if (!validateEmail(email)) {
-      newErrors.email = 'Email inválido';
+      newErrors.email = 'El email no es válido';
     }
 
     if (!password) {
       newErrors.password = 'La contraseña es requerida';
     } else if (!validatePassword(password)) {
-      newErrors.password = 'La contraseña debe tener al menos 6 caracteres';
+      newErrors.password = 'La contraseña debe tener al menos 4 caracteres';
     }
 
     setErrors(newErrors);
@@ -93,12 +94,13 @@ const LoginScreen = ({ navigation }) => {
     }
 
     try {
-      // TODO: Integrate with backend API
-      // Expected request: { email, password }
-      // Expected response: { id, email, name, token }
-      await login({ email, name: 'Usuario', token: 'dummy-token' });
+      // Integrado con backend: POST /api/auth-cliente/login
+      // Request: { email, contrasena }
+      // Response: { success, message, data: { token, cliente } }
+      await login(email, password);
     } catch (error) {
-      Alert.alert('Error', 'Credenciales inválidas');
+      const errorMsg = authError || error.response?.data?.message || 'Credenciales inválidas';
+      Alert.alert('Error de autenticación', errorMsg);
     }
   };
 
@@ -125,14 +127,14 @@ const LoginScreen = ({ navigation }) => {
 
           <View style={styles.inputsContainer}>
             <Input
-              placeholder="Correo electrónico o usuario"
+              placeholder="Email"
               value={email}
               onChangeText={(text) => {
                 setEmail(text);
                 if (errors.email) setErrors((prev) => ({ ...prev, email: '' }));
               }}
-              keyboardType="email-address"
               autoCapitalize="none"
+              keyboardType="email-address"
               editable={!isLoading}
               error={errors.email}
               onBlur={handleEmailBlur}
