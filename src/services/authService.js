@@ -1,97 +1,143 @@
 import apiClient, { setAuthToken, removeAuthToken } from './apiClient';
+import * as tokenStorage from '../utils/tokenStorage';
 
 /**
  * Auth Service
  * Handles authentication-related API calls
+ * Integrado con el backend en http://localhost:3000/api
  */
 
 /**
- * Login user
- * @param {string} email - User email
- * @param {string} password - User password
- * @returns {Promise<Object>} Response: { user: { id, name, email }, token }
+ * Login de cliente (app móvil)
+ * @param {string} email - Email del cliente
+ * @param {string} contrasena - Contraseña del cliente
+ * @returns {Promise<Object>} Response: { success, message, data: { token, cliente: { id, email, activo, roles } } }
  */
-export const login = async (email, password) => {
+export const login = async (email, contrasena) => {
   try {
-    const response = await apiClient.post('/auth/login', { email, password });
-    const { token } = response.data;
+    // Endpoint: POST /api/auth-cliente/login
+    const response = await apiClient.post('/auth-cliente/login', { 
+      email, 
+      contrasena 
+    });
     
-    if (token) {
-      await setAuthToken(token);
+    const { success, data } = response.data;
+    
+    if (success && data?.token) {
+      // Guardar token y datos del cliente en SecureStore
+      await tokenStorage.saveToken(data.token);
+      await tokenStorage.saveClientData(data.cliente);
+      await setAuthToken(data.token);
     }
     
     return response.data;
   } catch (error) {
+    console.error('Error en login:', error.response?.data || error.message);
     throw error;
   }
 };
 
 /**
- * Register new user
- * @param {Object} userData - User registration data
- * @param {string} userData.name - User name
- * @param {string} userData.email - User email
- * @param {string} userData.password - User password
- * @returns {Promise<Object>} Response: { user: { id, name, email }, token }
+ * Registro de nuevo cliente
+ * @param {Object} clienteData - Datos de registro del cliente
+ * @param {string} clienteData.nombre - Nombre del cliente
+ * @param {string} clienteData.apellido - Apellido del cliente
+ * @param {string} clienteData.email - Email del cliente
+ * @param {string} clienteData.contrasena - Contraseña del cliente
+ * @param {string} [clienteData.telefono] - Teléfono opcional
+ * @returns {Promise<Object>} Response: { success, message, data: { token, cliente } }
  */
-export const register = async (userData) => {
+export const register = async (clienteData) => {
   try {
-    const response = await apiClient.post('/auth/register', userData);
-    const { token } = response.data;
+    // Endpoint: POST /api/auth-cliente/registro (application/json)
+    // Este endpoint es público y retorna el token JWT directamente
+    const response = await apiClient.post('/auth-cliente/registro', {
+      nombre: clienteData.nombre,
+      apellido: clienteData.apellido,
+      email: clienteData.email,
+      contrasena: clienteData.contrasena,
+      telefono: clienteData.telefono || undefined, // Solo enviar si existe
+    }, {
+      skipAuthToken: true, // Flag personalizado para omitir el token (público)
+    });
     
-    if (token) {
-      await setAuthToken(token);
+    const { success, data } = response.data;
+    
+    if (success && data?.token) {
+      // Guardar token y datos del cliente en SecureStore
+      await tokenStorage.saveToken(data.token);
+      await tokenStorage.saveClientData(data.cliente);
+      await setAuthToken(data.token);
     }
     
     return response.data;
   } catch (error) {
+    console.error('Error en registro:', error.response?.data || error.message);
     throw error;
   }
 };
 
 /**
- * Logout user
+ * Cerrar sesión del cliente
  * @returns {Promise<void>}
  */
 export const logout = async () => {
   try {
-    await apiClient.post('/auth/logout');
+    // Limpiar tokens y datos de usuario del almacenamiento seguro
+    await tokenStorage.clearAuth();
     await removeAuthToken();
   } catch (error) {
-    // Even if request fails, remove token locally
+    console.error('Error en logout:', error);
+    // Asegurar limpieza incluso si hay error
+    await tokenStorage.clearAuth();
     await removeAuthToken();
     throw error;
   }
 };
 
 /**
- * Get current user profile
- * @returns {Promise<Object>} Response: { id, name, email, ... }
+ * Obtener perfil del cliente actual desde almacenamiento local
+ * @returns {Promise<Object|null>} Datos del cliente o null
  */
-export const getCurrentUser = async () => {
+export const getCurrentClient = async () => {
   try {
-    const response = await apiClient.get('/auth/me');
-    return response.data;
+    const clienteData = await tokenStorage.getClientData();
+    return clienteData;
   } catch (error) {
-    throw error;
+    console.error('Error al obtener cliente actual:', error);
+    return null;
   }
 };
 
 /**
- * Refresh authentication token
- * @returns {Promise<Object>} Response: { token }
+ * Verificar si el cliente tiene una sesión válida guardada
+ * @returns {Promise<boolean>}
  */
-export const refreshToken = async () => {
+export const hasValidSession = async () => {
   try {
-    const response = await apiClient.post('/auth/refresh');
-    const { token } = response.data;
+    return await tokenStorage.hasStoredSession();
+  } catch (error) {
+    return false;
+  }
+};
+
+/**
+ * Restaurar sesión del cliente desde almacenamiento seguro
+ * @returns {Promise<Object|null>} Returns { token, clienteData } or null
+ */
+export const restoreSession = async () => {
+  try {
+    const token = await tokenStorage.getToken();
+    const clienteData = await tokenStorage.getClientData();
     
-    if (token) {
+    if (token && clienteData) {
       await setAuthToken(token);
+      return { token, clienteData };
     }
     
-    return response.data;
+    return null;
   } catch (error) {
-    throw error;
+    console.error('Error al restaurar sesión:', error);
+    return null;
   }
 };
