@@ -1,8 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, StatusBar, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
 import { useAuth } from '../context/AuthContext';
 import Button from '../components/Button';
+import { COLORS } from '../constants/theme';
 
 /**
  * Profile Screen Component
@@ -19,7 +21,9 @@ const ProfileScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
+      <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>
@@ -46,15 +50,20 @@ const ProfileScreen = () => {
         <Button title="Cerrar Sesión" onPress={handleLogout} variant="secondary" />
       </View>
     </View>
+    </SafeAreaView>
   );
 };
 
 ProfileScreen.propTypes = {};
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.background,
   },
   header: {
     alignItems: 'center',
@@ -111,7 +120,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     paddingHorizontal: 24,
     marginTop: 'auto',
-    marginBottom: 32,
+    marginBottom: 100,
   },
 });
 

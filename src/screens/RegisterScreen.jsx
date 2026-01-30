@@ -8,7 +8,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
 import { useAuth } from '../context/AuthContext';
 import Button from '../components/Button';
@@ -232,7 +234,9 @@ const RegisterScreen = ({ navigation }) => {
   };
 
   return (
-    <KeyboardAvoidingView
+    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
+      <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
@@ -347,8 +351,7 @@ const RegisterScreen = ({ navigation }) => {
           </View>
         </View>
       </ScrollView>
-    </KeyboardAvoidingView>
-  );
+    </KeyboardAvoidingView>    </SafeAreaView>  );
 };
 
 RegisterScreen.propTypes = {
@@ -356,6 +359,10 @@ RegisterScreen.propTypes = {
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
   container: {
     flex: 1,
     backgroundColor: COLORS.background,

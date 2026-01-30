@@ -28,8 +28,16 @@ export const COLORS = {
   backgroundLight: '#FFFFFF',
   backgroundCard: 'rgba(30, 41, 59, 0.3)',
   
-  // Text colors
-  text: '#FFFFFF',
+  // Text colors (estructura anidada para mejor organización)
+  text: {
+    primary: '#FFFFFF',
+    secondary: '#9CA3AF',
+    muted: '#94A3B8',
+    light: '#FFFFFF',
+    dark: '#000000'
+  },
+  
+  // Colores legacy (mantenidos para compatibilidad)
   textSecondary: '#9CA3AF',
   textMuted: '#94A3B8',
   textLight: '#FFFFFF',
