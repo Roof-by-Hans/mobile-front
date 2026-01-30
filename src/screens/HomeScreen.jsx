@@ -1,157 +1,266 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, Pressable } from 'react-native';
+import React from 'react';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  ActivityIndicator, 
+  ScrollView,
+  RefreshControl,
+  Pressable,
+  Alert,
+  StatusBar,
+  Platform
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS, SPACING, FONT_SIZES } from '../constants/theme';
-import { testConnection } from '../services/apiClient';
+import { useAuth } from '../context/AuthContext';
+import { useDashboard } from '../hooks/useDashboard';
+import TransactionCard from '../components/TransactionCard';
+import StatCard from '../components/StatCard';
 
 /**
- * Home Screen Component
+ * Home Screen Component - Dashboard del Cliente
+ * Muestra resumen de cuenta, actividad reciente y accesos rápidos
+ * Basado en diseño de Figma: Home Mobile
  */
-const HomeScreen = () => {
-  const [connectionStatus, setConnectionStatus] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+const HomeScreen = ({ navigation }) => {
+  const { cliente } = useAuth();
+  const { 
+    resumenCuenta, 
+    actividadReciente, 
+    perfilCliente, 
+    isLoading, 
+    error, 
+    refrescar 
+  } = useDashboard(cliente?.id);
 
   /**
-   * Verifica la conexión con la API
+   * Maneja errores mostrando mensaje sutil (no bloquear UI)
    */
-  const checkConnection = async () => {
-    setIsLoading(true);
-    try {
-      const result = await testConnection();
-      setConnectionStatus(result);
-    } catch (error) {
-      console.error('Error al verificar conexión:', error);
-    } finally {
-      setIsLoading(false);
+  React.useEffect(() => {
+    if (error && error !== 'El servidor está experimentando problemas. Mostrando datos limitados.') {
+      // Solo mostrar alert para errores críticos
+      Alert.alert('Error', error);
+    } else if (error) {
+      // Para errores leves, solo log en consola (ya mostrado)
+      console.warn('Estado del dashboard:', error);
     }
+  }, [error]);
+
+  /**
+   * Renderiza el header con avatar y nivel
+   */
+  const renderHeader = () => {
+    const nombre = perfilCliente?.nombre || cliente?.nombre || cliente?.email || 'Usuario';
+    const apellido = perfilCliente?.apellido || '';
+    const nombreCompleto = apellido ? `${nombre} ${apellido}` : nombre;
+    const nivel = perfilCliente?.nivelSuscripcion?.nombre || 'Básico';
+    
+    return (
+      <View style={styles.header}>
+        {/* Avatar circular */}
+        <View style={styles.avatarContainer}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>
+              {nombre.charAt(0).toUpperCase()}
+            </Text>
+          </View>
+        </View>
+
+        {/* Nombre y nivel */}
+        <View style={styles.userInfo}>
+          <Text style={styles.userName}>
+            {nombreCompleto}
+          </Text>
+          <View style={styles.badgeContainer}>
+            <Text style={styles.badge}>
+              {nivel}
+            </Text>
+          </View>
+        </View>
+      </View>
+    );
   };
 
-  // Verifica la conexión automáticamente al montar el componente
-  useEffect(() => {
-    checkConnection();
-  }, []);
+  /**
+   * Renderiza el estado de carga
+   */
+  if (isLoading && !resumenCuenta) {
+    return (
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={COLORS.primary} />
+          <Text style={styles.loadingText}>Cargando datos...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>¡Bienvenido!</Text>
-      <Text style={styles.subtitle}>Tu aplicación Expo está lista</Text>
-      
-      {/* Estado de conexión con la API */}
-      <View style={styles.connectionContainer}>
-        <Text style={styles.sectionTitle}>Estado de la API:</Text>
-        
-        {isLoading ? (
-          <ActivityIndicator size="large" color={COLORS.primary} />
-        ) : connectionStatus ? (
-          <View style={styles.statusContainer}>
-            <Text style={[
-              styles.statusIndicator,
-              connectionStatus.connected ? styles.connected : styles.disconnected
-            ]}>
-              {connectionStatus.connected ? '🟢 Conectado' : '🔴 Desconectado'}
-            </Text>
-            <Text style={styles.statusMessage}>{connectionStatus.message}</Text>
-            <Text style={styles.baseURL}>URL: {connectionStatus.baseURL}</Text>
-            {connectionStatus.data && (
-              <Text style={styles.dataInfo}>Datos: {JSON.stringify(connectionStatus.data)}</Text>
-            )}
-          </View>
-        ) : null}
-        
-        {/* Botón para volver a intentar */}
-        <Pressable 
-          style={styles.retryButton}
-          onPress={checkConnection}
-          disabled={isLoading}
-        >
-          <Text style={styles.retryButtonText}>
-            {isLoading ? 'Verificando...' : 'Verificar Conexión'}
-          </Text>
-        </Pressable>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
+      <ScrollView 
+        style={styles.container}
+        contentContainerStyle={styles.contentContainer}
+      refreshControl={
+        <RefreshControl
+          refreshing={isLoading}
+          onRefresh={refrescar}
+          tintColor={COLORS.primary}
+        />
+      }
+    >
+      {/* Header con avatar y nivel */}
+      {renderHeader()}
+
+      {/* Límite de Cuenta / Saldo Disponible */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Saldo disponible</Text>
+        <StatCard
+          title=""
+          value={`$${(resumenCuenta?.saldoActual || 0).toLocaleString('es-AR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          })}`}
+          subtitle={resumenCuenta?.totalMovimientos > 0 
+            ? `${resumenCuenta.totalMovimientos} movimientos` 
+            : 'Sin movimientos aún'}
+        />
       </View>
-    </View>
+
+      {/* Actividad Reciente */}
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Actividad Reciente</Text>
+          <Pressable onPress={() => navigation.navigate('Movimientos')}>
+            <Text style={styles.viewAllText}>Ver todo</Text>
+          </Pressable>
+        </View>
+
+        {actividadReciente?.length > 0 ? (
+          actividadReciente.map((transaction, index) => (
+            <TransactionCard
+              key={transaction.id || index}
+              transaction={transaction}
+              onPress={() => console.log('Ver detalles:', transaction.id)}
+            />
+          ))
+        ) : (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>
+              No hay actividad reciente
+            </Text>
+          </View>
+        )}
+      </View>
+
+      {/* Espacio inferior para el TabBar */}
+      <View style={styles.bottomSpacer} />
+    </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: COLORS.background
+  },
   container: {
+    flex: 1,
+    backgroundColor: COLORS.background
+  },
+  contentContainer: {
+    paddingHorizontal: SPACING.md,
+    paddingTop: SPACING.md,
+    paddingBottom: 10
+  },
+  loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.background,
-    padding: SPACING.lg,
+    backgroundColor: COLORS.background
   },
-  title: {
-    fontSize: FONT_SIZES.xxl,
-    fontWeight: '700',
-    color: COLORS.text,
-    marginBottom: SPACING.sm,
-  },
-  subtitle: {
+  loadingText: {
+    marginTop: SPACING.md,
     fontSize: FONT_SIZES.md,
-    color: COLORS.textSecondary,
-    marginBottom: SPACING.xl,
+    color: COLORS.text.secondary
   },
-  connectionContainer: {
-    marginTop: SPACING.xl,
-    padding: SPACING.lg,
-    backgroundColor: COLORS.surface || '#fff',
-    borderRadius: 12,
-    width: '100%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+  header: {
+    alignItems: 'center',
+    marginBottom: SPACING.xl
+  },
+  avatarContainer: {
+    marginBottom: SPACING.md
+  },
+  avatar: {
+    width: 92,
+    height: 92,
+    borderRadius: 46,
+    backgroundColor: '#374151',
+    borderWidth: 4,
+    borderColor: '#FFD700',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  avatarText: {
+    fontSize: 36,
+    fontWeight: '700',
+    color: COLORS.text.primary
+  },
+  userInfo: {
+    alignItems: 'center'
+  },
+  userName: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: COLORS.text.primary,
+    marginBottom: SPACING.sm
+  },
+  badgeContainer: {
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderRadius: 20,
+    background: 'linear-gradient(90deg, rgba(28, 28, 28, 1) 7%, rgba(255, 215, 0, 1) 50%, rgba(28, 28, 28, 1) 93%)'
+  },
+  badge: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#FFD700',
+    textAlign: 'center'
+  },
+  section: {
+    marginBottom: SPACING.xl
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SPACING.sm
   },
   sectionTitle: {
     fontSize: FONT_SIZES.lg,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: SPACING.md,
+    fontWeight: '700',
+    color: COLORS.text.primary,
+    marginBottom: SPACING.sm
   },
-  statusContainer: {
-    marginBottom: SPACING.md,
-  },
-  statusIndicator: {
-    fontSize: FONT_SIZES.lg,
-    fontWeight: '600',
-    marginBottom: SPACING.sm,
-  },
-  connected: {
-    color: '#10B981',
-  },
-  disconnected: {
-    color: '#EF4444',
-  },
-  statusMessage: {
+  viewAllText: {
     fontSize: FONT_SIZES.sm,
-    color: COLORS.textSecondary,
-    marginBottom: SPACING.xs,
+    fontWeight: '500',
+    color: '#E0E2E1'
   },
-  baseURL: {
-    fontSize: FONT_SIZES.xs,
-    color: COLORS.textSecondary,
-    fontFamily: 'monospace',
-    marginBottom: SPACING.xs,
+  emptyContainer: {
+    padding: SPACING.xl,
+    alignItems: 'center'
   },
-  dataInfo: {
-    fontSize: FONT_SIZES.xs,
-    color: COLORS.textSecondary,
-    fontFamily: 'monospace',
-  },
-  retryButton: {
-    backgroundColor: COLORS.primary,
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.lg,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: SPACING.sm,
-  },
-  retryButtonText: {
-    color: '#fff',
+  emptyText: {
     fontSize: FONT_SIZES.md,
-    fontWeight: '600',
+    color: COLORS.text.secondary
   },
+  bottomSpacer: {
+    height: 100
+  }
 });
 
 export default HomeScreen;
