@@ -17,6 +17,8 @@ import { useAuth } from '../context/AuthContext';
 import { useDashboard } from '../hooks/useDashboard';
 import TransactionCard from '../components/TransactionCard';
 import StatCard from '../components/StatCard';
+import { Avatar } from '../components';
+import { getClientPhotoUrl } from '../utils/helpers';
 
 /**
  * Home Screen Component - Dashboard del Cliente
@@ -60,11 +62,14 @@ const HomeScreen = ({ navigation }) => {
       <View style={styles.header}>
         {/* Avatar circular */}
         <View style={styles.avatarContainer}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {nombre.charAt(0).toUpperCase()}
-            </Text>
-          </View>
+          <Avatar
+            imageUri={perfilCliente?.fotoPerfilUrl || getClientPhotoUrl(perfilCliente?.fotoPerfil)}
+            name={nombre}
+            size={92}
+            editable={false}
+            borderColor="#FFD700"
+            borderWidth={4}
+          />
         </View>
 
         {/* Nombre y nivel */}
@@ -193,21 +198,6 @@ const styles = StyleSheet.create({
   },
   avatarContainer: {
     marginBottom: SPACING.md
-  },
-  avatar: {
-    width: 92,
-    height: 92,
-    borderRadius: 46,
-    backgroundColor: '#374151',
-    borderWidth: 4,
-    borderColor: '#FFD700',
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  avatarText: {
-    fontSize: 36,
-    fontWeight: '700',
-    color: COLORS.text.primary
   },
   userInfo: {
     alignItems: 'center'

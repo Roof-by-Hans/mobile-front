@@ -47,6 +47,10 @@ export const COLORS = {
   // Button colors
   buttonBackground: '#1F2937',
   buttonText: '#BBBEC5',
+  
+  // Additional UI colors
+  border: '#E5E5EA',
+  error: '#EF4444',
 };
 
 export const SPACING = {

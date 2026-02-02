@@ -10,8 +10,10 @@ import { COLORS, SPACING, FONT_SIZES } from '../constants/theme';
  * @param {Function} onPress - Callback al presionar la tarjeta
  */
 const TransactionCard = ({ transaction, onPress }) => {
-  const isPositive = transaction.monto > 0;
   const tipoDisplay = transaction.tipoMovimientoDetalle?.nombre || transaction.tipoMovimiento?.nombre || transaction.tipo || 'Movimiento';
+  const tipo = tipoDisplay?.toLowerCase() || '';
+  const isConsumo = tipo.includes('consumo');
+  const isPositive = !isConsumo; // Consumo = negativo (gasto), Recarga = positivo (ingreso)
 
   return (
     <View style={styles.card}>
@@ -44,7 +46,7 @@ const TransactionCard = ({ transaction, onPress }) => {
         styles.amount,
         isPositive ? styles.amountPositive : styles.amountNegative
       ]}>
-        {isPositive ? '+' : '-'}${Math.abs(transaction.monto).toFixed(2)}
+        {isConsumo ? '-' : '+'}${Math.abs(transaction.monto).toFixed(2)}
       </Text>
     </View>
   );

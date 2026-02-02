@@ -2,48 +2,138 @@ import apiClient from './apiClient';
 
 /**
  * User Service
- * Handles user-related API calls
+ * Handles client-related API calls for authenticated clients
+ * All endpoints require authentication token
  */
 
 /**
- * Get user profile by ID
- * @param {string} userId - User ID
- * @returns {Promise<Object>} Response: { id, name, email, avatar, ... }
+ * Get authenticated client profile
+ * Response: { 
+ *   id, nombre, apellido, email, telefono, fotoPerfil, saldoActual,
+ *   nivelSuscripcion: { id, nombre },
+ *   tipoSuscripcion: { id, tipo },
+ *   tarjeta: { id, uuid, saldoActual, estado, fechaCreacion }
+ * }
+ * @returns {Promise<Object>} Client profile data
  */
-export const getUserProfile = async (userId) => {
+export const getClientProfile = async () => {
   try {
-    const response = await apiClient.get(`/users/${userId}`);
+    const response = await apiClient.get('/auth-cliente/me');
     return response.data;
   } catch (error) {
+    console.error('Error fetching client profile:', error);
     throw error;
   }
 };
 
 /**
- * Update user profile
- * @param {string} userId - User ID
- * @param {Object} userData - Updated user data
- * @returns {Promise<Object>} Response: { id, name, email, ... }
+ * Get account summary for the authenticated client
+ * Response: { saldoActual, totalConsumos, totalPagos, ultimoMovimiento, ... }
+ * @returns {Promise<Object>} Account summary
  */
-export const updateUserProfile = async (userId, userData) => {
+export const getAccountSummary = async () => {
   try {
-    const response = await apiClient.put(`/users/${userId}`, userData);
+    const response = await apiClient.get('/auth-cliente/resumen');
     return response.data;
   } catch (error) {
+    console.error('Error fetching account summary:', error);
     throw error;
   }
 };
 
 /**
- * Delete user account
- * @param {string} userId - User ID
- * @returns {Promise<Object>} Response: { message }
+ * Get client transaction history
+ * @param {Object} params - Query parameters (fecha_inicio, fecha_fin, tipo, page, limit)
+ * @returns {Promise<Object>} Response: { movimientos: [], total, page, limit }
  */
-export const deleteUser = async (userId) => {
+export const getClientMovements = async (params = {}) => {
   try {
-    const response = await apiClient.delete(`/users/${userId}`);
+    const response = await apiClient.get('/auth-cliente/movimientos', { params });
     return response.data;
   } catch (error) {
+    console.error('Error fetching client movements:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get client invoices
+ * @param {Object} params - Query parameters (estado, fecha_inicio, fecha_fin, page, limit)
+ * @returns {Promise<Object>} Response: { facturas: [], total, page, limit }
+ */
+export const getClientInvoices = async (params = {}) => {
+  try {
+    const response = await apiClient.get('/auth-cliente/facturas', { params });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching client invoices:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update authenticated client profile (self-update)
+ * PUT /api/auth-cliente/me
+ * @param {Object} clientData - Updated client data (nombre, apellido, telefono, preferencias)
+ * @returns {Promise<Object>} Response: { success, message, data: { id, nombre, apellido, email, telefono, fotoPerfil, preferencias } }
+ */
+export const updateClientProfile = async (clientData) => {
+  try {
+    const response = await apiClient.put('/auth-cliente/me', clientData);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating client profile:', error);
+    throw error;
+  }
+};
+
+/**
+ * Change client password
+ * PUT /api/auth-cliente/contrasena
+ * @param {Object} passwordData - { contrasenaActual, contrasenaNueva }
+ * @returns {Promise<Object>} Response: { success, message }
+ */
+export const changePassword = async (passwordData) => {
+  try {
+    const response = await apiClient.put('/auth-cliente/contrasena', passwordData);
+    return response.data;
+  } catch (error) {
+    console.error('Error changing password:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update client profile photo
+ * PUT /api/auth-cliente/foto
+ * @param {FormData} formData - Form data with photo file
+ * @returns {Promise<Object>} Response: { success, message, data: { fotoPerfil } }
+ */
+export const updateProfilePhoto = async (formData) => {
+  try {
+    const response = await apiClient.put('/auth-cliente/foto', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating profile photo:', error);
+    throw error;
+  }
+};
+
+/**
+ * Delete client profile photo
+ * DELETE /api/auth-cliente/foto
+ * @returns {Promise<Object>} Response: { success, message }
+ */
+export const deleteProfilePhoto = async () => {
+  try {
+    const response = await apiClient.delete('/auth-cliente/foto');
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting profile photo:', error);
     throw error;
   }
 };
