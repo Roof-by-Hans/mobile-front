@@ -1,13 +1,32 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createStackNavigator } from '@react-navigation/stack';
 import { View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import HomeScreen from '../screens/HomeScreen';
 import MovimientosScreen from '../screens/MovimientosScreen';
+import DetalleMovimientoScreen from '../screens/DetalleMovimientoScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 
 const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
+
+/**
+ * Stack Navigator for Movimientos Tab
+ */
+const MovimientosStack = () => {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <Stack.Screen name="MovimientosList" component={MovimientosScreen} />
+      <Stack.Screen name="DetallesMovimiento" component={DetalleMovimientoScreen} />
+    </Stack.Navigator>
+  );
+};
 
 /**
  * Custom SVG Icons matching Figma design
@@ -144,7 +163,7 @@ const MainTabNavigator = () => {
       />
       <Tab.Screen
         name="Movimientos"
-        component={MovimientosScreen}
+        component={MovimientosStack}
         options={{
           tabBarLabel: 'Movimientos',
           tabBarIcon: ({ color }) => <MovimientosIcon color={color} />,

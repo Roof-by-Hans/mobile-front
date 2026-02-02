@@ -36,3 +36,31 @@ export const truncateText = (text, maxLength) => {
   if (text.length <= maxLength) return text;
   return text.substring(0, maxLength) + '...';
 };
+
+/**
+ * Get the base URL from environment or default
+ * @returns {string} Base URL without /api
+ */
+export const getBaseURL = () => {
+  // Remove /api from the end if it exists
+  const apiUrl = process.env.API_URL || 'http://localhost:3000/api';
+  return apiUrl.replace(/\/api$/, '');
+};
+
+/**
+ * Build full URL for client profile photo
+ * @param {string} filename - Photo filename or URL
+ * @returns {string|null} Full URL or null if no filename
+ */
+export const getClientPhotoUrl = (filename) => {
+  if (!filename) return null;
+  
+  // If already a full URL, return as is
+  if (filename.startsWith('http://') || filename.startsWith('https://')) {
+    return filename;
+  }
+  
+  // Build full URL
+  const baseUrl = getBaseURL();
+  return `${baseUrl}/uploads/clientes/${filename}`;
+};
