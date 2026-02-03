@@ -4,15 +4,16 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  ActivityIndicator,
   TouchableOpacity,
   RefreshControl,
   StatusBar,
   Modal,
   Platform
 } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as userService from '../services/userService';
+import { Loading, EmptyState, ErrorMessage, TransactionCard } from '../components';
 import { COLORS } from '../constants/theme';
 
 /**
@@ -129,22 +130,10 @@ const MovimientosScreen = ({ navigation }) => {
   };
 
   const renderMovimiento = ({ item }) => (
-    <TouchableOpacity
-      style={styles.movimientoCard}
+    <TransactionCard
+      transaction={item}
       onPress={() => navigation.navigate('DetallesMovimiento', { movimiento: item })}
-    >
-      <View style={styles.movimientoInfo}>
-        <Text style={styles.movimientoTitulo}>
-          {item.tipoMovimiento?.nombre || 'Movimiento'}
-        </Text>
-        <Text style={styles.movimientoFecha}>
-          {formatDate(item.fecha)}
-        </Text>
-      </View>
-      <Text style={[styles.movimientoMonto, { color: getAmountColor(item.tipoMovimiento) }]}>
-        {formatAmount(item.monto, item.tipoMovimiento)}
-      </Text>
-    </TouchableOpacity>
+    />
   );
 
   const renderHeader = () => (
@@ -152,20 +141,16 @@ const MovimientosScreen = ({ navigation }) => {
       <Text style={styles.titulo}>Mis movimientos</Text>
       <View style={styles.filterButtons}>
         <TouchableOpacity 
-          style={[styles.filterButton, filtroTipo !== 'todos' && styles.filterButtonActive]}
+          style={styles.filterButton}
           onPress={() => setShowFilterModal(true)}
         >
-          <Text style={[styles.filterButtonText, filtroTipo !== 'todos' && styles.filterButtonTextActive]}>
-            {filtroTipo === 'todos' ? 'Filtrar' : filtroTipo === 'positivos' ? 'Ingresos' : 'Gastos'}
-          </Text>
+          <Text style={styles.filterButtonText}>Filtrar</Text>
         </TouchableOpacity>
         <TouchableOpacity 
-          style={[styles.filterButton, ordenamiento !== 'fecha-desc' && styles.filterButtonActive]}
+          style={styles.filterButton}
           onPress={() => setShowSortModal(true)}
         >
-          <Text style={[styles.filterButtonText, ordenamiento !== 'fecha-desc' && styles.filterButtonTextActive]}>
-            Ordenar
-          </Text>
+          <Text style={styles.filterButtonText}>Ordenar</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -175,7 +160,7 @@ const MovimientosScreen = ({ navigation }) => {
     <Modal
       visible={showFilterModal}
       transparent={true}
-      animationType="fade"
+      animationType="slide"
       onRequestClose={() => setShowFilterModal(false)}
     >
       <TouchableOpacity 
@@ -183,7 +168,11 @@ const MovimientosScreen = ({ navigation }) => {
         activeOpacity={1}
         onPress={() => setShowFilterModal(false)}
       >
+        <BlurView intensity={40} tint="systemChromeMaterialDark" style={StyleSheet.absoluteFill} />
         <View style={styles.modalContent}>
+          {/* Indicador de arrastre */}
+          <View style={styles.modalHandle} />
+          
           <Text style={styles.modalTitle}>Filtrar por tipo</Text>
           
           <TouchableOpacity
@@ -237,7 +226,7 @@ const MovimientosScreen = ({ navigation }) => {
     <Modal
       visible={showSortModal}
       transparent={true}
-      animationType="fade"
+      animationType="slide"
       onRequestClose={() => setShowSortModal(false)}
     >
       <TouchableOpacity 
@@ -245,7 +234,11 @@ const MovimientosScreen = ({ navigation }) => {
         activeOpacity={1}
         onPress={() => setShowSortModal(false)}
       >
+        <BlurView intensity={40} tint="systemChromeMaterialDark" style={StyleSheet.absoluteFill} />
         <View style={styles.modalContent}>
+          {/* Indicador de arrastre */}
+          <View style={styles.modalHandle} />
+          
           <Text style={styles.modalTitle}>Ordenar por</Text>
           
           <TouchableOpacity
@@ -311,10 +304,7 @@ const MovimientosScreen = ({ navigation }) => {
     return (
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
-        <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
-          <Text style={styles.loadingText}>Cargando movimientos...</Text>
-        </View>
+        <Loading text="Cargando movimientos..." />
       </SafeAreaView>
     );
   }
@@ -323,11 +313,14 @@ const MovimientosScreen = ({ navigation }) => {
     return (
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
-        <View style={styles.centerContainer}>
-          <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={fetchMovimientos}>
-            <Text style={styles.retryButtonText}>Reintentar</Text>
-          </TouchableOpacity>
+        <View style={styles.errorContainer}>
+          <ErrorMessage
+            title="Error al cargar"
+            message={error}
+            variant="error"
+            actionText="Reintentar"
+            onAction={fetchMovimientos}
+          />
         </View>
       </SafeAreaView>
     );
@@ -343,14 +336,14 @@ const MovimientosScreen = ({ navigation }) => {
           renderItem={renderMovimiento}
           ListHeaderComponent={renderHeader}
           ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>
-                {filtroTipo === 'todos' 
-                  ? 'No hay movimientos registrados' 
-                  : `No hay ${filtroTipo === 'positivos' ? 'ingresos' : 'gastos'}`
-                }
-              </Text>
-            </View>
+            <EmptyState
+              title={filtroTipo === 'todos' ? 'No hay movimientos' : `No hay ${filtroTipo === 'positivos' ? 'ingresos' : 'gastos'}`}
+              message={filtroTipo === 'todos' 
+                ? 'Aún no tienes movimientos registrados en tu cuenta'
+                : `No se encontraron ${filtroTipo === 'positivos' ? 'ingresos' : 'gastos'} en tu historial`
+              }
+              style={styles.emptyState}
+            />
           }
           refreshControl={
             <RefreshControl
@@ -380,172 +373,126 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  centerContainer: {
+  errorContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: COLORS.background,
     padding: 20,
+    justifyContent: 'center',
   },
   header: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 16,
+    paddingTop: 15,
+    paddingBottom: 24,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    paddingHorizontal: 0,
+    marginBottom: 0
   },
   titulo: {
-    fontSize: 22,
-    fontWeight: '700',
+    fontSize: 24,
+    fontWeight: '600',
     color: COLORS.text.primary,
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
+    letterSpacing: -0.6
   },
   filterButtons: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 12,
+    gap: 16,
+    paddingHorizontal: 24
   },
   filterButton: {
-    backgroundColor: 'rgba(30, 41, 59, 0.3)',
-    paddingHorizontal: 24,
+    paddingHorizontal: 0,
     paddingVertical: 10,
-    borderRadius: 8,
+    borderRadius: 9999,
     borderWidth: 1,
-    borderColor: 'transparent',
-  },
-  filterButtonActive: {
-    backgroundColor: COLORS.primary + '20',
-    borderColor: COLORS.primary,
+    borderColor: 'rgba(253, 216, 53, 0.4)',
+    width: 163,
+    height: 38,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'transparent'
   },
   filterButtonText: {
-    color: COLORS.text.muted,
+    color: COLORS.text.primary,
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     textAlign: 'center',
-  },
-  filterButtonTextActive: {
-    color: COLORS.primary,
+    letterSpacing: 0.35
   },
   listContent: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 24,
     paddingBottom: 100,
+    paddingTop: 0
   },
   listContentEmpty: {
     flex: 1,
   },
-  movimientoCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: 'rgba(30, 41, 59, 0.3)',
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 12,
-  },
-  movimientoInfo: {
-    flex: 1,
-  },
-  movimientoTitulo: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: COLORS.text.primary,
-    marginBottom: 4,
-  },
-  movimientoFecha: {
-    fontSize: 14,
-    color: COLORS.text.secondary,
-  },
-  movimientoMonto: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 12,
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: COLORS.text.secondary,
-  },
-  errorText: {
-    fontSize: 16,
-    color: COLORS.danger,
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  retryButton: {
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  retryButtonText: {
-    color: COLORS.text.primary,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 60,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: COLORS.text.secondary,
-    textAlign: 'center',
+  emptyState: {
+    marginTop: 40,
   },
   // Modal styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: COLORS.card,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    paddingBottom: Platform.OS === 'ios' ? 40 : 20,
+    backgroundColor: COLORS.background,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+  },
+  modalHandle: {
+    alignSelf: 'center',
+    width: 40,
+    height: 4,
+    backgroundColor: COLORS.text.muted,
+    borderRadius: 2,
+    marginBottom: 8,
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: '700',
+    fontWeight: '600',
     color: COLORS.text.primary,
-    marginBottom: 20,
+    marginBottom: 24,
+    marginTop: 12,
     textAlign: 'center',
   },
   modalOption: {
-    backgroundColor: 'rgba(30, 41, 59, 0.3)',
-    padding: 16,
-    borderRadius: 12,
+    backgroundColor: 'transparent',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 9999,
     marginBottom: 12,
-    borderWidth: 2,
-    borderColor: 'transparent',
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   modalOptionActive: {
-    backgroundColor: COLORS.primary + '20',
-    borderColor: COLORS.primary,
+    backgroundColor: 'transparent',
+    borderColor: COLORS.text.primary,
+    borderWidth: 2,
   },
   modalOptionText: {
     fontSize: 16,
     color: COLORS.text.primary,
     textAlign: 'center',
-    fontWeight: '500',
+    fontWeight: '400',
   },
   modalOptionTextActive: {
-    color: COLORS.primary,
-    fontWeight: '600',
+    color: COLORS.text.primary,
+    fontWeight: '500',
   },
   modalCancelButton: {
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-    padding: 16,
-    borderRadius: 12,
-    marginTop: 8,
+    backgroundColor: 'transparent',
+    paddingVertical: 16,
+    marginTop: 12,
   },
   modalCancelText: {
     fontSize: 16,
     color: COLORS.danger,
     textAlign: 'center',
-    fontWeight: '600',
+    fontWeight: '500',
   },
 });
 

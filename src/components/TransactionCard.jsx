@@ -1,7 +1,38 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import PropTypes from 'prop-types';
 import { COLORS, SPACING, FONT_SIZES } from '../constants/theme';
+
+/**
+ * Icono de flecha inclinada hacia arriba-derecha (Recarga)
+ */
+const ArrowUpRightIcon = ({ color }) => (
+  <Svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+    <Path
+      d="M5 13L13 5M13 5H7M13 5V11"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+/**
+ * Icono de flecha inclinada hacia abajo-izquierda (Consumo)
+ */
+const ArrowDownLeftIcon = ({ color }) => (
+  <Svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+    <Path
+      d="M13 5L5 13M5 13H11M5 13V7"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
 
 /**
  * Transaction Card Component
@@ -15,7 +46,7 @@ const TransactionCard = ({ transaction, onPress }) => {
   const isConsumo = tipo.includes('consumo');
   const isPositive = !isConsumo; // Consumo = negativo (gasto), Recarga = positivo (ingreso)
 
-  return (
+  const content = (
     <View style={styles.card}>
       <View style={styles.leftSection}>
         {/* Icono circular */}
@@ -23,7 +54,11 @@ const TransactionCard = ({ transaction, onPress }) => {
           styles.iconContainer,
           isPositive ? styles.iconPositive : styles.iconNegative
         ]}>
-          <Text style={styles.iconText}>{isPositive ? '↑' : '↓'}</Text>
+          {isPositive ? (
+            <ArrowUpRightIcon color={COLORS.text.icon} />
+          ) : (
+            <ArrowDownLeftIcon color={COLORS.text.icon} />
+          )}
         </View>
 
         {/* Info de la transacción */}
@@ -34,8 +69,7 @@ const TransactionCard = ({ transaction, onPress }) => {
           <Text style={styles.date}>
             {new Date(transaction.fecha).toLocaleDateString('es-AR', {
               day: 'numeric',
-              month: 'long',
-              year: 'numeric'
+              month: 'long'
             })}
           </Text>
         </View>
@@ -50,6 +84,16 @@ const TransactionCard = ({ transaction, onPress }) => {
       </Text>
     </View>
   );
+
+  if (onPress) {
+    return (
+      <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
+        {content}
+      </TouchableOpacity>
+    );
+  }
+
+  return content;
 };
 
 TransactionCard.propTypes = {
@@ -68,10 +112,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: 'rgba(30, 41, 59, 0.3)',
-    padding: SPACING.md,
-    borderRadius: 12,
-    marginBottom: SPACING.sm
+    backgroundColor: 'transparent',
+    paddingVertical: 20.25,
+    paddingHorizontal: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+    borderRadius: 8,
+    height: 81.5,
+    marginBottom: 0
   },
   leftSection: {
     flexDirection: 'row',
@@ -79,46 +127,52 @@ const styles = StyleSheet.create({
     flex: 1
   },
   iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 40,
+    height: 40,
+    borderRadius: 9999,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: SPACING.md
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    marginRight: 20,
+    backgroundColor: 'transparent'
   },
   iconPositive: {
-    backgroundColor: 'rgba(20, 83, 45, 0.5)'
+    backgroundColor: 'transparent'
   },
   iconNegative: {
-    backgroundColor: 'rgba(127, 29, 29, 0.5)'
-  },
-  iconText: {
-    fontSize: 24,
-    color: COLORS.text.primary
+    backgroundColor: 'transparent'
   },
   infoContainer: {
     flex: 1
   },
   title: {
-    fontSize: FONT_SIZES.md,
-    fontWeight: '700',
+    fontSize: 14,
+    fontWeight: '500',
     color: COLORS.text.primary,
+    letterSpacing: 0.35,
+    lineHeight: 20,
+    textTransform: 'uppercase',
     marginBottom: 4
   },
   date: {
-    fontSize: FONT_SIZES.sm,
-    color: COLORS.text.secondary
+    fontSize: 11,
+    fontWeight: '300',
+    color: COLORS.gray,
+    lineHeight: 16.5
   },
   amount: {
-    fontSize: FONT_SIZES.lg,
-    fontWeight: '700',
+    fontSize: 14,
+    fontWeight: '300',
+    letterSpacing: 0.35,
+    lineHeight: 20,
     marginLeft: SPACING.sm
   },
   amountPositive: {
-    color: '#4ADE80'
+    color: COLORS.success
   },
   amountNegative: {
-    color: '#F87171'
+    color: COLORS.text.primary
   }
 });
 

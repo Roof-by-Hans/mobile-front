@@ -9,12 +9,12 @@ import {
   Platform,
   Image,
   StatusBar,
+  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
 import { useAuth } from '../context/AuthContext';
-import Button from '../components/Button';
-import Input from '../components/Input';
+import { Button, Input, ErrorMessage } from '../components';
 import { COLORS, SPACING, FONT_SIZES, BORDER_RADIUS, FONT_WEIGHTS } from '../constants/theme';
 
 /**
@@ -101,8 +101,8 @@ const LoginScreen = ({ navigation }) => {
       // Response: { success, message, data: { token, cliente } }
       await login(email, password);
     } catch (error) {
-      const errorMsg = authError || error.response?.data?.message || 'Credenciales inválidas';
-      Alert.alert('Error de autenticación', errorMsg);
+      // El error ya se maneja en el contexto AuthContext
+      console.error('Error en login:', error);
     }
   };
 
@@ -127,7 +127,16 @@ const LoginScreen = ({ navigation }) => {
         </View>
 
         <View style={styles.formContainer}>
-          <Text style={styles.subtitle}>Inicia sesión para acceder a tu cuenta.</Text>
+          <Text style={styles.title}>Iniciar Sesión</Text>
+          <Text style={styles.subtitle}>Inicia sesión para acceder a tu cuenta</Text>
+
+          {authError && (
+            <ErrorMessage
+              message={authError}
+              variant="error"
+              style={styles.errorMessage}
+            />
+          )}
 
           <View style={styles.inputsContainer}>
             <Input
@@ -160,16 +169,16 @@ const LoginScreen = ({ navigation }) => {
 
           {isLoading ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={COLORS.text} />
+              <ActivityIndicator size="large" color={COLORS.primary} />
             </View>
           ) : (
             <View style={styles.buttonsContainer}>
               <Button title="Iniciar sesión" onPress={handleLogin} />
               <View style={styles.registerLinkContainer}>
                 <Text style={styles.registerText}>¿No tienes cuenta? </Text>
-                <Text style={styles.registerLink} onPress={goToRegister}>
-                  Regístrate
-                </Text>
+                <TouchableOpacity onPress={goToRegister}>
+                  <Text style={styles.registerLink}>Regístrate</Text>
+                </TouchableOpacity>
               </View>
             </View>
           )}
@@ -196,30 +205,43 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: SPACING.lg,
-    paddingTop: 60,
+    paddingTop: 40,
   },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: SPACING.xl,
+    marginBottom: SPACING.xxl,
   },
   logoPlaceholder: {
-    width: 231,
-    height: 206,
+    width: 120,
+    height: 120,
     backgroundColor: COLORS.backgroundCard,
-    borderRadius: BORDER_RADIUS.lg,
+    borderRadius: 60,
+    borderWidth: 2,
+    borderColor: COLORS.primary,
   },
   formContainer: {
     flex: 1,
   },
+  title: {
+    fontSize: 28,
+    fontWeight: '600',
+    color: COLORS.text.primary,
+    textAlign: 'center',
+    marginBottom: SPACING.sm,
+  },
   subtitle: {
     fontSize: FONT_SIZES.md,
-    color: COLORS.textSecondary,
+    color: COLORS.text.secondary,
     textAlign: 'center',
     marginBottom: SPACING.xxl,
     fontWeight: FONT_WEIGHTS.regular,
   },
-  inputsContainer: {
+  errorMessage: {
     marginBottom: SPACING.md,
+  },
+  inputsContainer: {
+    marginBottom: SPACING.lg,
+    gap: SPACING.md,
   },
   loadingContainer: {
     paddingVertical: SPACING.lg,
@@ -232,18 +254,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: SPACING.md,
+    marginTop: SPACING.lg,
   },
   registerText: {
-    fontSize: FONT_SIZES.sm,
-    color: COLORS.textSecondary,
+    fontSize: FONT_SIZES.md,
+    color: COLORS.text.secondary,
     fontWeight: FONT_WEIGHTS.regular,
   },
   registerLink: {
-    fontSize: FONT_SIZES.sm,
-    color: COLORS.text,
-    fontWeight: FONT_WEIGHTS.bold,
-    textDecorationLine: 'underline',
+    fontSize: FONT_SIZES.md,
+    color: COLORS.primary,
+    fontWeight: FONT_WEIGHTS.medium,
   },
 });
 
