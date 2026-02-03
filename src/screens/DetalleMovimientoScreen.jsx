@@ -5,6 +5,7 @@ import {
   StyleSheet,
   ScrollView,
   StatusBar,
+  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS, SPACING, FONT_SIZES } from '../constants/theme';
@@ -43,8 +44,7 @@ const DetalleMovimientoScreen = ({ route, navigation }) => {
     const num = parseFloat(amount);
     const tipo = tipoMovimiento?.nombre?.toLowerCase() || '';
     const isConsumo = tipo.includes('consumo');
-    const sign = isConsumo ? '-' : '+';
-    return `${sign}$${Math.abs(num).toFixed(2)}`;
+    return `$${Math.abs(num).toFixed(2)}`;
   };
 
   const getAmountColor = (tipoMovimiento) => {
@@ -79,12 +79,16 @@ const DetalleMovimientoScreen = ({ route, navigation }) => {
         
         {/* Header */}
         <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Text style={styles.backArrow}>←</Text>
+          </TouchableOpacity>
           <Text style={styles.titulo}>Detalle del Movimiento</Text>
+          <View style={styles.backButton} />
         </View>
 
         {/* Monto Principal */}
         <View style={styles.montoContainer}>
-          <Text style={styles.montoLabel}>Monto</Text>
+          <Text style={styles.montoLabel}>MONTO</Text>
           <Text style={[styles.montoValor, { color: getAmountColor(movimiento.tipoMovimiento) }]}>
             {formatAmount(movimiento.monto, movimiento.tipoMovimiento)}
           </Text>
@@ -96,14 +100,14 @@ const DetalleMovimientoScreen = ({ route, navigation }) => {
           
           <View style={styles.infoCard}>
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Tipo:</Text>
-              <Text style={styles.infoValue}>{getTipoMovimiento()}</Text>
+              <Text style={styles.infoLabel}>Tipo</Text>
+              <Text style={styles.infoValue}>{getTipoMovimiento().toUpperCase()}</Text>
             </View>
 
             <View style={styles.divider} />
 
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Fecha:</Text>
+              <Text style={styles.infoLabel}>Fecha</Text>
               <Text style={styles.infoValue}>{formatDate(movimiento.fecha)}</Text>
             </View>
 
@@ -111,8 +115,8 @@ const DetalleMovimientoScreen = ({ route, navigation }) => {
               <>
                 <View style={styles.divider} />
                 <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>Observaciones:</Text>
-                  <Text style={styles.infoValue}>{movimiento.observaciones}</Text>
+                  <Text style={styles.infoLabel}>Observaciones</Text>
+                  <Text style={[styles.infoValue, styles.infoValueMultiline]}>{movimiento.observaciones}</Text>
                 </View>
               </>
             )}
@@ -120,7 +124,7 @@ const DetalleMovimientoScreen = ({ route, navigation }) => {
             <View style={styles.divider} />
 
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>ID Movimiento:</Text>
+              <Text style={styles.infoLabel}>ID Movimiento</Text>
               <Text style={styles.infoValue}>#{movimiento.id}</Text>
             </View>
           </View>
@@ -133,24 +137,24 @@ const DetalleMovimientoScreen = ({ route, navigation }) => {
             
             <View style={styles.infoCard}>
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>ID Factura:</Text>
+                <Text style={styles.infoLabel}>ID Factura</Text>
                 <Text style={styles.infoValue}>#{movimiento.factura.id}</Text>
               </View>
 
               <View style={styles.divider} />
 
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Total Factura:</Text>
-                <Text style={styles.infoValue}>{formatAmount(movimiento.factura.total)}</Text>
+                <Text style={styles.infoLabel}>Total Factura</Text>
+                <Text style={[styles.infoValue]}>{formatAmount(movimiento.factura.total)}</Text>
               </View>
 
               {getEstadoFactura() && (
                 <>
                   <View style={styles.divider} />
                   <View style={styles.infoRow}>
-                    <Text style={styles.infoLabel}>Estado:</Text>
-                    <View style={[styles.estadoBadge, { backgroundColor: getEstadoFactura().color + '20' }]}>
-                      <Text style={[styles.estadoText, { color: getEstadoFactura().color }]}>
+                    <Text style={styles.infoLabel}>Estado</Text>
+                    <View style={styles.estadoBadge}>
+                      <Text style={styles.estadoText}>
                         {getEstadoFactura().texto}
                       </Text>
                     </View>
@@ -176,8 +180,8 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   contentContainer: {
-    padding: SPACING.lg,
-    paddingBottom: 40,
+    paddingHorizontal: SPACING.lg,
+    paddingBottom: 100,
   },
   centerContainer: {
     flex: 1,
@@ -186,49 +190,64 @@ const styles = StyleSheet.create({
     padding: SPACING.lg,
   },
   header: {
-    marginBottom: SPACING.xl,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: SPACING.md,
+    marginBottom: SPACING.lg,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  backArrow: {
+    fontSize: 28,
+    color: COLORS.text.primary,
   },
   titulo: {
-    fontSize: FONT_SIZES.xxl,
-    fontWeight: '700',
+    fontSize: 20,
+    fontWeight: '600',
     color: COLORS.text.primary,
     textAlign: 'center',
   },
   montoContainer: {
     alignItems: 'center',
-    marginBottom: SPACING.xl,
-    padding: SPACING.xl,
-    backgroundColor: 'rgba(30, 41, 59, 0.3)',
-    borderRadius: 16,
+    marginBottom: SPACING.xxl,
+    paddingVertical: SPACING.xxl,
   },
   montoLabel: {
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
     color: COLORS.text.secondary,
-    marginBottom: SPACING.sm,
+    marginBottom: SPACING.md,
+    letterSpacing: 2,
+    fontWeight: '500',
   },
   montoValor: {
-    fontSize: 48,
+    fontSize: 56,
     fontWeight: '700',
+    letterSpacing: -1,
   },
   section: {
     marginBottom: SPACING.xl,
   },
   sectionTitle: {
     fontSize: FONT_SIZES.lg,
-    fontWeight: '700',
+    fontWeight: '600',
     color: COLORS.text.primary,
     marginBottom: SPACING.md,
   },
   infoCard: {
-    backgroundColor: 'rgba(30, 41, 59, 0.3)',
-    borderRadius: 12,
-    padding: SPACING.lg,
+    backgroundColor: COLORS.background,
+    borderRadius: 0,
+    paddingVertical: SPACING.xs,
   },
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: SPACING.sm,
+    alignItems: 'flex-start',
+    paddingVertical: SPACING.md,
   },
   infoLabel: {
     fontSize: FONT_SIZES.md,
@@ -238,23 +257,30 @@ const styles = StyleSheet.create({
   infoValue: {
     fontSize: FONT_SIZES.md,
     color: COLORS.text.primary,
-    fontWeight: '500',
-    flex: 2,
+    fontWeight: '400',
+    flex: 1.5,
+    textAlign: 'right',
+  },
+  infoValueMultiline: {
     textAlign: 'right',
   },
   divider: {
     height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    marginVertical: SPACING.sm,
+    backgroundColor: COLORS.border,
   },
   estadoBadge: {
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.xs,
-    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: COLORS.primary,
   },
   estadoText: {
     fontSize: FONT_SIZES.sm,
     fontWeight: '600',
+    color: COLORS.primary,
+    letterSpacing: 0.5,
   },
   errorText: {
     fontSize: FONT_SIZES.lg,

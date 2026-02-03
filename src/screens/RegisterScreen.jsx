@@ -9,12 +9,12 @@ import {
   Platform,
   ScrollView,
   StatusBar,
+  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
 import { useAuth } from '../context/AuthContext';
-import Button from '../components/Button';
-import Input from '../components/Input';
+import { Button, Input, ErrorMessage } from '../components';
 import { COLORS, SPACING, FONT_SIZES, BORDER_RADIUS, FONT_WEIGHTS } from '../constants/theme';
 
 /**
@@ -237,121 +237,115 @@ const RegisterScreen = ({ navigation }) => {
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
       <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <View style={styles.content}>
-          {/* Logo placeholder */}
-          <View style={styles.logoContainer}>
-            <View style={styles.logoPlaceholder} />
-          </View>
-
-          <View style={styles.formContainer}>
-            <Text style={styles.subtitle}>Únete a nosotros y crea tu cuenta.</Text>
-
-            <View style={styles.inputsContainer}>
-              <Input
-                placeholder="Nombre"
-                value={nombre}
-                onChangeText={(text) => {
-                  setNombre(text);
-                  if (errors.nombre) setErrors((prev) => ({ ...prev, nombre: '' }));
-                }}
-                editable={!isLoading}
-                error={errors.nombre}
-                onBlur={handleNombreBlur}
-              />
-
-              <Input
-                placeholder="Apellido"
-                value={apellido}
-                onChangeText={(text) => {
-                  setApellido(text);
-                  if (errors.apellido) setErrors((prev) => ({ ...prev, apellido: '' }));
-                }}
-                editable={!isLoading}
-                error={errors.apellido}
-                onBlur={handleApellidoBlur}
-              />
-
-              <Input
-                placeholder="Teléfono (opcional)"
-                value={telefono}
-                onChangeText={(text) => {
-                  setTelefono(text);
-                  if (errors.telefono) setErrors((prev) => ({ ...prev, telefono: '' }));
-                }}
-                keyboardType="phone-pad"
-                editable={!isLoading}
-                error={errors.telefono}
-                onBlur={handleTelefonoBlur}
-              />
-
-              <Input
-                placeholder="Correo electrónico"
-                value={email}
-                onChangeText={(text) => {
-                  setEmail(text);
-                  if (errors.email) setErrors((prev) => ({ ...prev, email: '' }));
-                }}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                editable={!isLoading}
-                error={errors.email}
-                onBlur={handleEmailBlur}
-              />
-
-              <Input
-                placeholder="Contraseña"
-                value={password}
-                onChangeText={(text) => {
-                  setPassword(text);
-                  if (errors.password) setErrors((prev) => ({ ...prev, password: '' }));
-                }}
-                secureTextEntry
-                editable={!isLoading}
-                error={errors.password}
-                onBlur={handlePasswordBlur}
-              />
-
-              <Input
-                placeholder="Confirmar contraseña"
-                value={confirmPassword}
-                onChangeText={(text) => {
-                  setConfirmPassword(text);
-                  if (errors.confirmPassword)
-                    setErrors((prev) => ({ ...prev, confirmPassword: '' }));
-                }}
-                secureTextEntry
-                editable={!isLoading}
-                error={errors.confirmPassword}
-                onBlur={handleConfirmPasswordBlur}
-              />
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.content}>
+            <View style={styles.logoContainer}>
+              <View style={styles.logoPlaceholder} />
             </View>
-
+            <View style={styles.formContainer}>
+              <Text style={styles.title}>Crear Cuenta</Text>
+              <Text style={styles.subtitle}>Únete a nosotros y crea tu cuenta</Text>
+              <View style={styles.inputsContainer}>
+                <Input
+                  placeholder="Nombre"
+                  value={nombre}
+                  onChangeText={(text) => {
+                    setNombre(text);
+                    if (errors.nombre) setErrors((prev) => ({ ...prev, nombre: '' }));
+                  }}
+                  editable={!isLoading}
+                  error={errors.nombre}
+                  onBlur={handleNombreBlur}
+                />
+                <Input
+                  placeholder="Apellido"
+                  value={apellido}
+                  onChangeText={(text) => {
+                    setApellido(text);
+                    if (errors.apellido) setErrors((prev) => ({ ...prev, apellido: '' }));
+                  }}
+                  editable={!isLoading}
+                  error={errors.apellido}
+                  onBlur={handleApellidoBlur}
+                />
+                <Input
+                  placeholder="Teléfono (opcional)"
+                  value={telefono}
+                  onChangeText={(text) => {
+                    setTelefono(text);
+                    if (errors.telefono) setErrors((prev) => ({ ...prev, telefono: '' }));
+                  }}
+                  keyboardType="phone-pad"
+                  editable={!isLoading}
+                  error={errors.telefono}
+                  onBlur={handleTelefonoBlur}
+                />
+                <Input
+                  placeholder="Correo electrónico"
+                  value={email}
+                  onChangeText={(text) => {
+                    setEmail(text);
+                    if (errors.email) setErrors((prev) => ({ ...prev, email: '' }));
+                  }}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  editable={!isLoading}
+                  error={errors.email}
+                  onBlur={handleEmailBlur}
+                />
+                <Input
+                  placeholder="Contraseña"
+                  value={password}
+                  onChangeText={(text) => {
+                    setPassword(text);
+                    if (errors.password) setErrors((prev) => ({ ...prev, password: '' }));
+                  }}
+                  secureTextEntry
+                  editable={!isLoading}
+                  error={errors.password}
+                  onBlur={handlePasswordBlur}
+                />
+                <Input
+                  placeholder="Confirmar contraseña"
+                  value={confirmPassword}
+                  onChangeText={(text) => {
+                    setConfirmPassword(text);
+                    if (errors.confirmPassword)
+                      setErrors((prev) => ({ ...prev, confirmPassword: '' }));
+                  }}
+                  secureTextEntry
+                  editable={!isLoading}
+                  error={errors.confirmPassword}
+                  onBlur={handleConfirmPasswordBlur}
+                />
+              </View>
             {isLoading ? (
               <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={COLORS.text} />
+                <ActivityIndicator size="large" color={COLORS.primary} />
               </View>
             ) : (
               <View style={styles.buttonsContainer}>
                 <Button title="Crear cuenta" onPress={handleRegister} />
                 <View style={styles.loginLinkContainer}>
                   <Text style={styles.loginText}>¿Ya tienes cuenta? </Text>
-                  <Text style={styles.loginLink} onPress={goToLogin}>
-                    Inicia sesión
-                  </Text>
+                  <TouchableOpacity onPress={goToLogin}>
+                    <Text style={styles.loginLink}>Inicia sesión</Text>
+                  </TouchableOpacity>
                 </View>
               </View>
             )}
+            </View>
           </View>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>    </SafeAreaView>  );
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
 };
 
 RegisterScreen.propTypes = {
@@ -373,7 +367,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: SPACING.lg,
-    paddingTop: 60,
+    paddingTop: 40,
     paddingBottom: SPACING.xl,
   },
   logoContainer: {
@@ -381,23 +375,33 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.xl,
   },
   logoPlaceholder: {
-    width: 231,
-    height: 206,
+    width: 120,
+    height: 120,
     backgroundColor: COLORS.backgroundCard,
-    borderRadius: BORDER_RADIUS.lg,
+    borderRadius: 60,
+    borderWidth: 2,
+    borderColor: COLORS.primary,
   },
   formContainer: {
     flex: 1,
   },
+  title: {
+    fontSize: 28,
+    fontWeight: '600',
+    color: COLORS.text.primary,
+    textAlign: 'center',
+    marginBottom: SPACING.sm,
+  },
   subtitle: {
     fontSize: FONT_SIZES.md,
-    color: COLORS.textSecondary,
+    color: COLORS.text.secondary,
     textAlign: 'center',
     marginBottom: SPACING.xl,
     fontWeight: FONT_WEIGHTS.regular,
   },
   inputsContainer: {
-    marginBottom: SPACING.md,
+    marginBottom: SPACING.lg,
+    gap: SPACING.md,
   },
   loadingContainer: {
     paddingVertical: SPACING.lg,
@@ -410,18 +414,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: SPACING.md,
+    marginTop: SPACING.lg,
   },
   loginText: {
-    fontSize: FONT_SIZES.sm,
-    color: COLORS.textSecondary,
+    fontSize: FONT_SIZES.md,
+    color: COLORS.text.secondary,
     fontWeight: FONT_WEIGHTS.regular,
   },
   loginLink: {
-    fontSize: FONT_SIZES.sm,
-    color: COLORS.text,
-    fontWeight: FONT_WEIGHTS.bold,
-    textDecorationLine: 'underline',
+    fontSize: FONT_SIZES.md,
+    color: COLORS.primary,
+    fontWeight: FONT_WEIGHTS.medium,
   },
 });
 

@@ -17,7 +17,7 @@ import { useAuth } from '../context/AuthContext';
 import { useDashboard } from '../hooks/useDashboard';
 import TransactionCard from '../components/TransactionCard';
 import StatCard from '../components/StatCard';
-import { Avatar } from '../components';
+import { Avatar, Loading, ErrorMessage, EmptyState } from '../components';
 import { getClientPhotoUrl } from '../utils/helpers';
 
 /**
@@ -50,7 +50,7 @@ const HomeScreen = ({ navigation }) => {
   }, [error]);
 
   /**
-   * Renderiza el header con avatar y nivel
+   * Renderiza el header con avatar y nivel según diseño Figma
    */
   const renderHeader = () => {
     const nombre = perfilCliente?.nombre || cliente?.nombre || cliente?.email || 'Usuario';
@@ -60,28 +60,32 @@ const HomeScreen = ({ navigation }) => {
     
     return (
       <View style={styles.header}>
-        {/* Avatar circular */}
+        {/* Nombre centrado */}
+        <Text style={styles.userName}>
+          {nombreCompleto}
+        </Text>
+        
+        {/* Avatar circular con borde dorado y sombra */}
         <View style={styles.avatarContainer}>
-          <Avatar
-            imageUri={perfilCliente?.fotoPerfilUrl || getClientPhotoUrl(perfilCliente?.fotoPerfil)}
-            name={nombre}
-            size={92}
-            editable={false}
-            borderColor="#FFD700"
-            borderWidth={4}
-          />
+          <View style={styles.avatarBorder}>
+            <View style={styles.avatarBackground}>
+              <Avatar
+                imageUri={perfilCliente?.fotoPerfilUrl || getClientPhotoUrl(perfilCliente?.fotoPerfil)}
+                name={nombre}
+                size={84}
+                editable={false}
+                borderColor="transparent"
+                borderWidth={0}
+              />
+            </View>
+          </View>
         </View>
 
-        {/* Nombre y nivel */}
-        <View style={styles.userInfo}>
-          <Text style={styles.userName}>
-            {nombreCompleto}
+        {/* Badge de nivel */}
+        <View style={styles.badgeContainer}>
+          <Text style={styles.badge}>
+            {nivel.toUpperCase()}
           </Text>
-          <View style={styles.badgeContainer}>
-            <Text style={styles.badge}>
-              {nivel}
-            </Text>
-          </View>
         </View>
       </View>
     );
@@ -94,10 +98,7 @@ const HomeScreen = ({ navigation }) => {
     return (
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
-          <Text style={styles.loadingText}>Cargando datos...</Text>
-        </View>
+        <Loading text="Cargando dashboard..." />
       </SafeAreaView>
     );
   }
@@ -118,33 +119,42 @@ const HomeScreen = ({ navigation }) => {
     >
       {/* Header con avatar y nivel */}
       {renderHeader()}
-
-      {/* Límite de Cuenta / Saldo Disponible */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Saldo disponible</Text>
-        <StatCard
-          title=""
-          value={`$${(resumenCuenta?.saldoActual || 0).toLocaleString('es-AR', {
+        <View style={styles.balanceSection}>
+          <View style={styles.balanceCard}>
+            <Text style={styles.balanceLabel}>SALDO DISPONIBLE</Text>
+            <Text style={styles.balanceAmount}>
+          ${(resumenCuenta?.saldoActual || 0).toLocaleString('es-AR', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
-          })}`}
-          subtitle={resumenCuenta?.totalMovimientos > 0 
-            ? `${resumenCuenta.totalMovimientos} movimientos` 
-            : 'Sin movimientos aún'}
-        />
-      </View>
+          })}
+            </Text>
+            <Text style={styles.balanceSubtitle}>
+          {(() => {
+            const mesActual = new Date().getMonth();
+            const movimientosMesActual = actividadReciente?.filter(mov => {
+              const fechaMov = new Date(mov.fecha || mov.createdAt);
+              return fechaMov.getMonth() === mesActual;
+            }).length || 0;
+            
+            return movimientosMesActual > 0 
+              ? `${movimientosMesActual} movimientos este mes` 
+              : 'Sin movimientos este mes';
+          })()}
+            </Text>
+          </View>
+        </View>
 
-      {/* Actividad Reciente */}
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Actividad Reciente</Text>
+        {/* Actividad Reciente */}
+      <View style={styles.activitySection}>
+        <View style={styles.activityHeader}>
+          <Text style={styles.activityTitle}>Actividad Reciente</Text>
           <Pressable onPress={() => navigation.navigate('Movimientos')}>
-            <Text style={styles.viewAllText}>Ver todo</Text>
+            <Text style={styles.viewAllText}>VER TODO</Text>
           </Pressable>
         </View>
 
         {actividadReciente?.length > 0 ? (
-          actividadReciente.map((transaction, index) => (
+          actividadReciente.slice(0, 4).map((transaction, index) => (
             <TransactionCard
               key={transaction.id || index}
               transaction={transaction}
@@ -152,11 +162,11 @@ const HomeScreen = ({ navigation }) => {
             />
           ))
         ) : (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>
-              No hay actividad reciente
-            </Text>
-          </View>
+          <EmptyState
+            title="Sin actividad"
+            message="No hay movimientos recientes en tu cuenta"
+            style={styles.emptyState}
+          />
         )}
       </View>
 
@@ -177,76 +187,141 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background
   },
   contentContainer: {
-    paddingHorizontal: SPACING.md,
-    paddingTop: SPACING.md,
+    paddingTop: 15,
     paddingBottom: 10
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: COLORS.background
-  },
-  loadingText: {
-    marginTop: SPACING.md,
-    fontSize: FONT_SIZES.md,
-    color: COLORS.text.secondary
-  },
+  // Header Styles (según Figma)
   header: {
     alignItems: 'center',
-    marginBottom: SPACING.xl
-  },
-  avatarContainer: {
-    marginBottom: SPACING.md
-  },
-  userInfo: {
-    alignItems: 'center'
+    height: 179,
+    marginBottom: SPACING.lg,
+    paddingHorizontal: SPACING.lg
   },
   userName: {
-    fontSize: 24,
-    fontWeight: '700',
+    fontSize: 20,
+    fontWeight: '500',
     color: COLORS.text.primary,
-    marginBottom: SPACING.sm
+    textAlign: 'center',
+    letterSpacing: 0.5,
+    lineHeight: 28,
+    marginBottom: SPACING.md
+  },
+  avatarContainer: {
+    marginBottom: SPACING.sm,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  avatarBorder: {
+    width: 90,
+    height: 90,
+    borderRadius: 9999,
+    borderWidth: 1,
+    borderColor: COLORS.borderGlow,
+    padding: 3,
+    backgroundColor: 'transparent',
+    shadowColor: COLORS.shadowGold,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.15,
+    shadowRadius: 15,
+    elevation: 8
+  },
+  avatarBackground: {
+    width: 84,
+    height: 84,
+    borderRadius: 9999,
+    backgroundColor: COLORS.backgroundAvatar,
+    overflow: 'hidden'
   },
   badgeContainer: {
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    borderRadius: 20,
-    background: 'linear-gradient(90deg, rgba(28, 28, 28, 1) 7%, rgba(255, 215, 0, 1) 50%, rgba(28, 28, 28, 1) 93%)'
+    paddingHorizontal: 21,
+    paddingVertical: 7,
+    borderRadius: 9999,
+    backgroundColor: COLORS.glassBg,
+    borderWidth: 1,
+    borderColor: COLORS.borderBadge,
+    height: 29
   },
   badge: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#FFD700',
+    fontSize: 10,
+    fontWeight: '700',
+    color: COLORS.primary,
+    letterSpacing: 2,
+    lineHeight: 15,
     textAlign: 'center'
   },
-  section: {
+  // Balance Section Styles (según Figma)
+  balanceSection: {
+    paddingHorizontal: SPACING.lg,
     marginBottom: SPACING.xl
   },
-  sectionHeader: {
+  balanceCard: {
+    backgroundColor: COLORS.backgroundCard,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 32,
+    padding: SPACING.xl,
+    alignItems: 'center',
+    shadowColor: COLORS.shadowGold,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.1,
+    shadowRadius: 40,
+    elevation: 5,
+    height: 210
+  },
+  balanceLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: COLORS.gray,
+    letterSpacing: 1.2,
+    marginTop: 17,
+    marginBottom: SPACING.md
+  },
+  balanceAmount: {
+    fontSize: 52,
+    fontWeight: '300',
+    color: COLORS.text.primary,
+    letterSpacing: -1.3,
+    lineHeight: 52,
+    marginBottom: SPACING.xl
+  },
+  balanceSubtitle: {
+    fontSize: 12,
+    fontWeight: '300',
+    color: COLORS.text.muted,
+    letterSpacing: 0.3,
+    lineHeight: 16
+  },
+  // Activity Section Styles (según Figma)
+  activitySection: {
+    paddingHorizontal: SPACING.lg,
+    marginBottom: SPACING.xl
+  },
+  activityHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: SPACING.sm
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+    paddingBottom: SPACING.md,
+    marginBottom: SPACING.md,
+    height: 45
   },
-  sectionTitle: {
-    fontSize: FONT_SIZES.lg,
-    fontWeight: '700',
+  activityTitle: {
+    fontSize: 18,
+    fontWeight: '300',
     color: COLORS.text.primary,
-    marginBottom: SPACING.sm
+    letterSpacing: 0.45,
+    lineHeight: 28
   },
   viewAllText: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: 12,
     fontWeight: '500',
-    color: '#E0E2E1'
+    color: COLORS.gray,
+    letterSpacing: 0.3,
+    lineHeight: 16
   },
-  emptyContainer: {
-    padding: SPACING.xl,
-    alignItems: 'center'
-  },
-  emptyText: {
-    fontSize: FONT_SIZES.md,
-    color: COLORS.text.secondary
+  emptyState: {
+    marginVertical: SPACING.md
   },
   bottomSpacer: {
     height: 100

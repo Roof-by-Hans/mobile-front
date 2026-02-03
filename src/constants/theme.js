@@ -4,43 +4,39 @@
  */
 
 export const COLORS = {
-  // Primary colors from Figma
-  primary: '#1F2937',
-  secondary: '#374151',
-  gold: '#FFD700',
+  // Primary colors (diseño Figma)
+  primary: '#FDD835', // Amarillo dorado principal
+  secondary: '#0A0A0A', // Negro profundo
   
   // Status colors
-  success: '#22C55E',
+  success: '#4ADE80', // Verde para montos positivos
   danger: '#EF4444',
   warning: '#FF9500',
   info: '#5AC8FA',
   
   // Neutral colors
   white: '#FFFFFF',
-  black: '#000000',
-  gray: '#9CA3AF',
+  gray: '#888888', // Gris del diseño Figma
   lightGray: '#E5E5EA',
-  darkGray: '#1C1C1C',
-  slateGray: '#94A3B8',
   
   // Background colors
-  background: '#1C1C1C',
-  backgroundLight: '#FFFFFF',
-  backgroundCard: 'rgba(30, 41, 59, 0.3)',
+  background: '#000000', // Fondo principal negro
+  backgroundSecondary: '#1C1C1C', // Fondo alternativo
+  backgroundCard: 'rgba(255, 255, 255, 0.03)', // Cards con glassmorphism
+  backgroundAvatar: '#0A0A0A', // Fondo del avatar
   
   // Text colors (estructura anidada para mejor organización)
   text: {
     primary: '#FFFFFF',
-    secondary: '#9CA3AF',
-    muted: '#94A3B8',
-    light: '#FFFFFF',
+    secondary: '#888888', // Gris medio del diseño
+    muted: 'rgba(255, 255, 255, 0.3)', // Texto muy sutil
+    icon: 'rgba(255, 255, 255, 0.6)', // Iconos sutiles
     dark: '#000000'
   },
   
   // Colores legacy (mantenidos para compatibilidad)
-  textSecondary: '#9CA3AF',
-  textMuted: '#94A3B8',
-  textLight: '#FFFFFF',
+  textSecondary: '#888888',
+  textMuted: 'rgba(255, 255, 255, 0.3)',
   textDark: '#000000',
   inputPlaceholder: '#757575',
   
@@ -49,8 +45,14 @@ export const COLORS = {
   buttonText: '#BBBEC5',
   
   // Additional UI colors
-  border: '#E5E5EA',
+  border: 'rgba(255, 255, 255, 0.05)', // Bordes sutiles del diseño
+  borderGlow: 'rgba(253, 216, 53, 0.6)', // Borde dorado con glow
+  borderBadge: 'rgba(253, 216, 53, 0.3)', // Borde del badge
   error: '#EF4444',
+  
+  // Glassmorphism & Effects
+  glassBg: 'rgba(253, 216, 53, 0.05)', // Fondo del badge
+  shadowGold: '#FDD835', // Color de sombras doradas
 };
 
 export const SPACING = {
@@ -74,14 +76,10 @@ export const FONT_SIZES = {
 export const FONT_WEIGHTS = {
   regular: '400',
   medium: '500',
-  semibold: '600',
   bold: '700',
 };
 
 export const BORDER_RADIUS = {
-  sm: 4,
   md: 8,
   lg: 12,
-  xl: 16,
-  round: 999,
 };

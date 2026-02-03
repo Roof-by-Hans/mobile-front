@@ -1,9 +1,11 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
-import { View } from 'react-native';
+import { View, Platform, StyleSheet } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BlurView } from 'expo-blur';
+import { COLORS } from '../constants/theme';
 import HomeScreen from '../screens/HomeScreen';
 import MovimientosScreen from '../screens/MovimientosScreen';
 import DetalleMovimientoScreen from '../screens/DetalleMovimientoScreen';
@@ -30,18 +32,19 @@ const MovimientosStack = () => {
 
 /**
  * Custom SVG Icons matching Figma design
+ * Dimensiones según Figma: width: 26.02, height: 34 (container)
  */
 const HomeIcon = ({ color }) => (
-  <Svg width="23" height="19" viewBox="0 0 23 19" fill="none">
+  <Svg width="26" height="34" viewBox="0 0 26 34" fill="none">
     <Path
-      d="M2 7L11.5 1L21 7V17C21 17.5304 20.7893 18.0391 20.4142 18.4142C20.0391 18.7893 19.5304 19 19 19H4C3.46957 19 2.96086 18.7893 2.58579 18.4142C2.21071 18.0391 2 17.5304 2 17V7Z"
+      d="M2.17 9.24L13.17 2L24.17 9.24V27.76C24.17 28.5548 23.854 29.3169 23.2914 29.8795C22.7288 30.4421 21.9667 30.76 21.17 30.76H5.17C4.37326 30.76 3.61111 30.4421 3.0485 29.8795C2.48589 29.3169 2.17 28.5548 2.17 27.76V9.24Z"
       stroke={color}
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
     />
     <Path
-      d="M8 19V10H15V19"
+      d="M9.17 30.76V16.76H17.17V30.76"
       stroke={color}
       strokeWidth="2"
       strokeLinecap="round"
@@ -50,57 +53,31 @@ const HomeIcon = ({ color }) => (
   </Svg>
 );
 
+
 const MovimientosIcon = ({ color }) => (
-  <Svg width="17" height="25" viewBox="0 0 17 25" fill="none">
+  <Svg width="26" height="34" viewBox="0 0 20 14" fill="none">
     <Path
-      d="M1 7.5H16M1 12.5H16M1 17.5H16"
-      stroke={color}
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      d="M7.01 9L0 9L0 11L7.01 11L7.01 14L11 10L7.01 6L7.01 9Z"
+      fill={color}
     />
     <Path
-      d="M4 2.5L1 7.5L4 12.5"
-      stroke={color}
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <Path
-      d="M13 12.5L16 17.5L13 22.5"
-      stroke={color}
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      d="M12.99 8L12.99 5L20 5L20 3L12.99 3L12.99 0L9 4L12.99 8Z"
+      fill={color}
     />
   </Svg>
 );
 
 const CuentasIcon = ({ color }) => (
-  <Svg width="23" height="19" viewBox="0 0 23 19" fill="none">
+  <Svg width="26" height="34" viewBox="0 0 26 34" fill="none">
     <Path
-      d="M16 18V16C16 14.9391 15.5786 13.9217 14.8284 13.1716C14.0783 12.4214 13.0609 12 12 12H5C3.93913 12 2.92172 12.4214 2.17157 13.1716C1.42143 13.9217 1 14.9391 1 16V18"
+      d="M21.34 32.66V29.32C21.34 27.6539 20.6779 26.0556 19.4902 24.8679C18.3025 23.6802 16.7042 23.02 15.04 23.02H7.66C5.99587 23.02 4.39759 23.6802 3.20987 24.8679C2.02216 26.0556 1.36 27.6539 1.36 29.32V32.66"
       stroke={color}
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
     />
     <Path
-      d="M8.5 9C10.7091 9 12.5 7.20914 12.5 5C12.5 2.79086 10.7091 1 8.5 1C6.29086 1 4.5 2.79086 4.5 5C4.5 7.20914 6.29086 9 8.5 9Z"
-      stroke={color}
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <Path
-      d="M21 18V16C20.9993 15.1137 20.7044 14.2528 20.1614 13.5523C19.6184 12.8519 18.8581 12.3516 18 12.13"
-      stroke={color}
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <Path
-      d="M15 1.13C15.8604 1.35031 16.623 1.85071 17.1676 2.55232C17.7122 3.25392 18.0078 4.11683 18.0078 5.005C18.0078 5.89318 17.7122 6.75608 17.1676 7.45769C16.623 8.15929 15.8604 8.65969 15 8.88"
+      d="M11.35 16.34C14.9399 16.34 17.85 13.4299 17.85 9.84C17.85 6.25014 14.9399 3.34 11.35 3.34C7.76014 3.34 4.85 6.25014 4.85 9.84C4.85 13.4299 7.76014 16.34 11.35 16.34Z"
       stroke={color}
       strokeWidth="2"
       strokeLinecap="round"
@@ -112,70 +89,89 @@ const CuentasIcon = ({ color }) => (
 /**
  * Main Tab Navigator
  * Handles protected routes with bottom tab navigation
- * Matches Figma design: https://www.figma.com/design/xiUjNo8i24a4SzMkCIN8Vz/Proyecto-Final
+ * Matches Figma design: Nav con backdrop blur y estilo glassmorphism
  */
 const MainTabNavigator = () => {
   const insets = useSafeAreaInsets();
   
   return (
     <Tab.Navigator
-      screenOptions={{
-        tabBarActiveTintColor: '#94A3B8', // Slate 400 - Active state
-        tabBarInactiveTintColor: '#FFFFFF', // White - Inactive state
+      screenOptions={({ route }) => ({
+        tabBarActiveTintColor: COLORS.primary, // Amarillo dorado cuando está activo
+        tabBarInactiveTintColor: COLORS.gray, // Gris cuando está inactivo
+        tabBarBackground: () => (
+          <View style={StyleSheet.absoluteFill}>
+            <BlurView
+              style={StyleSheet.absoluteFill}
+              tint="dark"
+              intensity={80}
+            />
+            <View style={{
+              ...StyleSheet.absoluteFill,
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              borderTopColor: COLORS.border,
+              borderTopWidth: 1,
+            }} />
+          </View>
+        ),
         tabBarStyle: {
-          backgroundColor: '#1C1C1C', // Dark background
-          borderTopColor: '#2D2D2D', // Más sutil que antes
-          borderTopWidth: 1,
-          paddingBottom: Math.max(insets.bottom, 12),
-          paddingTop: 12,
-          paddingHorizontal: 20,
-          height: 75 + insets.bottom,
-          elevation: 8,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: 0.25,
-          shadowRadius: 4,
-          position: 'absolute', // Para que se vea flotante
+          backgroundColor: 'transparent',
+          borderTopWidth: 0,
+          paddingBottom: 12,
+          paddingTop: 17,
+          paddingHorizontal: 48,
+          height: 83,
+          position: 'absolute',
+          elevation: 0,
         },
-        tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: '600',
-          marginTop: 4,
-          marginBottom: 2,
+        tabBarShowLabel: false, // Sin labels de texto
+        tabBarIcon: ({ focused, color }) => {
+          let IconComponent;
+          
+          if (route.name === 'Inicio') {
+            IconComponent = HomeIcon;
+          } else if (route.name === 'Movimientos') {
+            IconComponent = MovimientosIcon;
+          } else if (route.name === 'Cuentas') {
+            IconComponent = CuentasIcon;
+          }
+          
+          return (
+            <View style={{ alignItems: 'center' }}>
+              <IconComponent color={focused ? COLORS.primary : COLORS.gray} />
+              {/* Indicador de estado activo (punto) */}
+              {focused && (
+                <View style={{
+                  width: 4,
+                  height: 4,
+                  borderRadius: 2,
+                  backgroundColor: COLORS.primary,
+                  marginTop: 6,
+                  position: 'absolute',
+                  bottom: -10
+                }} />
+              )}
+            </View>
+          );
         },
         tabBarItemStyle: {
-          paddingVertical: 6,
-          paddingHorizontal: 8,
+          paddingVertical: 0,
+          height: 34,
         },
-        tabBarIconStyle: {
-          marginTop: 2,
-        },
-        headerShown: false, // Hide default header
-      }}
+        headerShown: false,
+      })}
     >
       <Tab.Screen
         name="Inicio"
         component={HomeScreen}
-        options={{
-          tabBarLabel: 'Inicio',
-          tabBarIcon: ({ color }) => <HomeIcon color={color} />,
-        }}
       />
       <Tab.Screen
         name="Movimientos"
         component={MovimientosStack}
-        options={{
-          tabBarLabel: 'Movimientos',
-          tabBarIcon: ({ color }) => <MovimientosIcon color={color} />,
-        }}
       />
       <Tab.Screen
         name="Cuentas"
         component={ProfileScreen}
-        options={{
-          tabBarLabel: 'Cuentas',
-          tabBarIcon: ({ color }) => <CuentasIcon color={color} />,
-        }}
       />
     </Tab.Navigator>
   );

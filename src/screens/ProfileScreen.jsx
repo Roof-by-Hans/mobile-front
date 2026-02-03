@@ -12,16 +12,73 @@ import {
   Image,
   Platform
 } from 'react-native';
+import { BlurView } from 'expo-blur';
+import Svg, { Path, Circle, Rect } from 'react-native-svg';
 import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
 import { useAuth } from '../context/AuthContext';
 import useProfile from '../hooks/useProfile';
-import { Avatar } from '../components';
-import Button from '../components/Button';
-import Input from '../components/Input';
+import { Avatar, Button, Input, Loading, ErrorMessage } from '../components';
 import { COLORS } from '../constants/theme';
 import { getClientPhotoUrl } from '../utils/helpers';
+
+// Icon Components
+const EditIcon = ({ size = 20, color = COLORS.text.secondary }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path 
+      d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" 
+      stroke={color} 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round"
+    />
+    <Path 
+      d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" 
+      stroke={color} 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+const LockIcon = ({ size = 20, color = COLORS.text.secondary }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Rect 
+      x="3" 
+      y="11" 
+      width="18" 
+      height="11" 
+      rx="2" 
+      ry="2" 
+      stroke={color} 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round"
+    />
+    <Path 
+      d="M7 11V7a5 5 0 0 1 10 0v4" 
+      stroke={color} 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+const SettingsIcon = ({ size = 20, color = COLORS.text.secondary }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Circle cx="12" cy="12" r="3" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <Path 
+      d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24" 
+      stroke={color} 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
 
 /**
  * Profile Screen Component
@@ -286,10 +343,7 @@ const ProfileScreen = () => {
     return (
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
-          <Text style={styles.loadingText}>Cargando perfil...</Text>
-        </View>
+        <Loading text="Cargando perfil..." />
       </SafeAreaView>
     );
   }
@@ -302,8 +356,13 @@ const ProfileScreen = () => {
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error}</Text>
-          <Button title="Reintentar" onPress={refreshProfile} />
+          <ErrorMessage
+            title="Error al cargar perfil"
+            message={error}
+            variant="error"
+            actionText="Reintentar"
+            onAction={refreshProfile}
+          />
         </View>
       </SafeAreaView>
     );
@@ -312,14 +371,18 @@ const ProfileScreen = () => {
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.container} 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         
         {/* Header with Avatar */}
         <View style={styles.header}>
           <Avatar
             imageUri={profile?.fotoPerfilUrl || getClientPhotoUrl(profile?.fotoPerfil)}
             name={profile?.nombre}
-            size={100}
+            size={120}
             editable={true}
             onPress={handleChangePhoto}
             isLoading={isUpdating}
@@ -328,20 +391,11 @@ const ProfileScreen = () => {
             {profile?.nombre || ''} {profile?.apellido || ''}
           </Text>
           <Text style={styles.email}>{profile?.email || ''}</Text>
-          
-          {/* Subscription Badge */}
-          {profile?.nivelSuscripcion && (
-            <View style={styles.subscriptionBadge}>
-              <Text style={styles.subscriptionText}>
-                {profile.nivelSuscripcion.nombre}
-              </Text>
-            </View>
-          )}
         </View>
 
         {/* Account Info Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Información de Cuenta</Text>
+          <Text style={styles.sectionTitle}>INFORMACIÓN DE CUENTA</Text>
           
           <View style={styles.infoCard}>
             <View style={styles.infoRow}>
@@ -351,24 +405,29 @@ const ProfileScreen = () => {
               </Text>
             </View>
             
+            <View style={styles.divider} />
+            
             {profile?.tipoSuscripcion && (
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Tipo de Suscripción</Text>
-                <Text style={styles.infoValue}>{profile.tipoSuscripcion.tipo}</Text>
-              </View>
+              <>
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Tipo de Suscripción</Text>
+                  <Text style={styles.infoValue}>{profile.tipoSuscripcion.tipo?.toUpperCase()}</Text>
+                </View>
+                <View style={styles.divider} />
+              </>
             )}
             
             {profile?.tarjeta && (
               <>
                 <View style={styles.infoRow}>
                   <Text style={styles.infoLabel}>Estado de Tarjeta</Text>
-                  <Text style={[
-                    styles.infoValue,
-                    { color: profile.tarjeta.estado === 'activa' ? COLORS.success : COLORS.warning }
-                  ]}>
-                    {profile.tarjeta.estado}
-                  </Text>
+                  <View style={styles.estadoBadge}>
+                    <Text style={styles.estadoText}>
+                      {profile.tarjeta.estado?.toUpperCase() || 'ACTIVA'}
+                    </Text>
+                  </View>
                 </View>
+                <View style={styles.divider} />
                 <View style={styles.infoRow}>
                   <Text style={styles.infoLabel}>Saldo en Tarjeta</Text>
                   <Text style={styles.infoValue}>
@@ -382,21 +441,24 @@ const ProfileScreen = () => {
 
         {/* Personal Info Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Información Personal</Text>
+          <Text style={styles.sectionTitle}>INFORMACIÓN PERSONAL</Text>
           
           <View style={styles.infoCard}>
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Nombre</Text>
               <Text style={styles.infoValue}>{profile?.nombre || 'N/A'}</Text>
             </View>
+            <View style={styles.divider} />
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Apellido</Text>
               <Text style={styles.infoValue}>{profile?.apellido || 'N/A'}</Text>
             </View>
+            <View style={styles.divider} />
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Email</Text>
               <Text style={styles.infoValue}>{profile?.email || 'N/A'}</Text>
             </View>
+            <View style={styles.divider} />
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Teléfono</Text>
               <Text style={styles.infoValue}>{profile?.telefono || 'No especificado'}</Text>
@@ -405,32 +467,40 @@ const ProfileScreen = () => {
         </View>
 
         {/* Actions Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Acciones</Text>
-          
+        <View style={styles.actionsSection}>
           <TouchableOpacity style={styles.actionButton} onPress={handleEditProfile}>
-            <Text style={styles.actionButtonText}>✏️ Editar Datos Personales</Text>
+            <View style={styles.actionLeft}>
+              <EditIcon size={20} color={COLORS.text.secondary} />
+              <Text style={styles.actionButtonText}>Editar Datos Personales</Text>
+            </View>
+            <Text style={styles.actionArrow}>›</Text>
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.actionButton} onPress={handleChangePassword}>
-            <Text style={styles.actionButtonText}>🔒 Cambiar Contraseña</Text>
+            <View style={styles.actionLeft}>
+              <LockIcon size={20} color={COLORS.text.secondary} />
+              <Text style={styles.actionButtonText}>Cambiar Contraseña</Text>
+            </View>
+            <Text style={styles.actionArrow}>›</Text>
           </TouchableOpacity>
           
           <TouchableOpacity 
             style={styles.actionButton} 
             onPress={() => setShowSettingsModal(true)}
           >
-            <Text style={styles.actionButtonText}>⚙️ Ajustes de la App</Text>
+            <View style={styles.actionLeft}>
+              <SettingsIcon size={20} color={COLORS.text.secondary} />
+              <Text style={styles.actionButtonText}>Ajustes de la App</Text>
+            </View>
+            <Text style={styles.actionArrow}>›</Text>
           </TouchableOpacity>
         </View>
 
         {/* Logout Button */}
         <View style={styles.logoutSection}>
-          <Button 
-            title="Cerrar Sesión" 
-            onPress={handleLogout} 
-            variant="secondary" 
-          />
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+            <Text style={styles.logoutText}>Cerrar Sesión</Text>
+          </TouchableOpacity>
         </View>
 
       </ScrollView>
@@ -442,8 +512,16 @@ const ProfileScreen = () => {
         transparent={true}
         onRequestClose={() => setShowEditModal(false)}
       >
-        <View style={styles.modalOverlay}>
+        <TouchableOpacity 
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowEditModal(false)}
+        >
+          <BlurView intensity={40} tint="systemChromeMaterialDark" style={StyleSheet.absoluteFill} />
           <View style={styles.modalContent}>
+            {/* Indicador de arrastre */}
+            <View style={styles.modalHandle} />
+            
             <Text style={styles.modalTitle}>Editar Perfil</Text>
             
             <Input
@@ -484,7 +562,7 @@ const ProfileScreen = () => {
               />
             </View>
           </View>
-        </View>
+        </TouchableOpacity>
       </Modal>
 
       {/* Change Password Modal */}
@@ -494,8 +572,16 @@ const ProfileScreen = () => {
         transparent={true}
         onRequestClose={() => setShowPasswordModal(false)}
       >
-        <View style={styles.modalOverlay}>
+        <TouchableOpacity 
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowPasswordModal(false)}
+        >
+          <BlurView intensity={40} tint="systemChromeMaterialDark" style={StyleSheet.absoluteFill} />
           <View style={styles.modalContent}>
+            {/* Indicador de arrastre */}
+            <View style={styles.modalHandle} />
+            
             <Text style={styles.modalTitle}>Cambiar Contraseña</Text>
             
             <Input
@@ -538,7 +624,7 @@ const ProfileScreen = () => {
               />
             </View>
           </View>
-        </View>
+        </TouchableOpacity>
       </Modal>
 
       {/* Settings Modal */}
@@ -548,8 +634,16 @@ const ProfileScreen = () => {
         transparent={true}
         onRequestClose={() => setShowSettingsModal(false)}
       >
-        <View style={styles.modalOverlay}>
+        <TouchableOpacity 
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowSettingsModal(false)}
+        >
+          <BlurView intensity={40} tint="systemChromeMaterialDark" style={StyleSheet.absoluteFill} />
           <View style={styles.modalContent}>
+            {/* Indicador de arrastre */}
+            <View style={styles.modalHandle} />
+            
             <Text style={styles.modalTitle}>Ajustes de la App</Text>
             
             <View style={styles.settingItem}>
@@ -579,7 +673,7 @@ const ProfileScreen = () => {
               />
             </View>
           </View>
-        </View>
+        </TouchableOpacity>
       </Modal>
 
     </SafeAreaView>
@@ -597,6 +691,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+  scrollContent: {
+    paddingBottom: 120,
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -605,7 +702,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: COLORS.textSecondary,
+    color: COLORS.text.secondary,
   },
   errorContainer: {
     flex: 1,
@@ -621,107 +718,134 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    paddingVertical: 32,
+    paddingVertical: 40,
     paddingHorizontal: 24,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
   },
   name: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: COLORS.text,
-    marginBottom: 4,
+    fontSize: 20,
+    fontWeight: '600',
+    color: COLORS.text.primary,
+    marginTop: 16,
+    marginBottom: 8,
   },
   email: {
-    fontSize: 16,
-    color: COLORS.textSecondary,
-    marginBottom: 12,
-  },
-  subscriptionBadge: {
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 20,
-    marginTop: 8,
-  },
-  subscriptionText: {
-    color: COLORS.white,
     fontSize: 14,
-    fontWeight: '600',
+    color: COLORS.text.secondary,
   },
   section: {
-    padding: 24,
+    paddingHorizontal: 24,
+    marginTop: 32,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: COLORS.text,
+    fontSize: 12,
+    fontWeight: '500',
+    color: COLORS.text.secondary,
     marginBottom: 16,
+    letterSpacing: 1.5,
   },
   infoCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    backgroundColor: COLORS.background,
   },
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    alignItems: 'center',
+    paddingVertical: 16,
   },
   infoLabel: {
     fontSize: 16,
-    color: COLORS.textSecondary,
+    color: COLORS.text.secondary,
   },
   infoValue: {
     fontSize: 16,
+    fontWeight: '400',
+    color: COLORS.text.primary,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: COLORS.border,
+  },
+  estadoBadge: {
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+  },
+  estadoText: {
+    fontSize: 12,
     fontWeight: '600',
-    color: COLORS.text,
+    color: COLORS.primary,
+    letterSpacing: 0.5,
+  },
+  actionsSection: {
+    paddingHorizontal: 24,
+    marginTop: 48,
   },
   actionButton: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  actionLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   actionButtonText: {
     fontSize: 16,
-    fontWeight: '500',
-    color: COLORS.text,
+    fontWeight: '400',
+    color: COLORS.text.primary,
+  },
+  actionArrow: {
+    fontSize: 24,
+    color: COLORS.text.secondary,
   },
   logoutSection: {
-    padding: 24,
-    paddingBottom: 40,
+    paddingHorizontal: 24,
+    marginTop: 48,
+    paddingBottom: 32,
+  },
+  logoutButton: {
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  logoutText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: COLORS.danger,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+    justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: COLORS.white,
-    borderRadius: 16,
-    padding: 24,
-    width: '90%',
-    maxWidth: 400,
+    backgroundColor: COLORS.background,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+  },
+  modalHandle: {
+    alignSelf: 'center',
+    width: 40,
+    height: 4,
+    backgroundColor: COLORS.text.muted,
+    borderRadius: 2,
+    marginBottom: 8,
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: COLORS.text,
+    fontWeight: '600',
+    color: COLORS.text.primary,
     marginBottom: 24,
+    marginTop: 12,
     textAlign: 'center',
   },
   modalButtons: {
@@ -742,15 +866,15 @@ const styles = StyleSheet.create({
   },
   settingLabel: {
     fontSize: 16,
-    color: COLORS.text,
+    color: COLORS.text.primary,
   },
   settingValue: {
     fontSize: 16,
-    color: COLORS.textSecondary,
+    color: COLORS.text.secondary,
   },
   settingNote: {
     fontSize: 14,
-    color: COLORS.textSecondary,
+    color: COLORS.text.secondary,
     fontStyle: 'italic',
     marginTop: 16,
     textAlign: 'center',
