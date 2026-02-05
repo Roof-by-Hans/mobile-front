@@ -121,9 +121,13 @@ const LoginScreen = ({ navigation }) => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
       <View style={styles.content}>
-        {/* Logo placeholder - Can be replaced with actual image */}
+        {/* Logo de la marca */}
         <View style={styles.logoContainer}>
-          <View style={styles.logoPlaceholder} />
+          <Image
+            source={require('../../assets/images/hans-logo.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
         </View>
 
         <View style={styles.formContainer}>
@@ -210,6 +214,10 @@ const styles = StyleSheet.create({
   logoContainer: {
     alignItems: 'center',
     marginBottom: SPACING.xxl,
+  },
+  logo: {
+    width: 150,
+    height: 150,
   },
   logoPlaceholder: {
     width: 120,

@@ -10,6 +10,7 @@ import {
   ScrollView,
   StatusBar,
   TouchableOpacity,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
@@ -246,7 +247,11 @@ const RegisterScreen = ({ navigation }) => {
         >
           <View style={styles.content}>
             <View style={styles.logoContainer}>
-              <View style={styles.logoPlaceholder} />
+              <Image
+                source={require('../../assets/images/hans-logo.png')}
+                style={styles.logo}
+                resizeMode="contain"
+              />
             </View>
             <View style={styles.formContainer}>
               <Text style={styles.title}>Crear Cuenta</Text>
@@ -373,6 +378,10 @@ const styles = StyleSheet.create({
   logoContainer: {
     alignItems: 'center',
     marginBottom: SPACING.xl,
+  },
+  logo: {
+    width: 150,
+    height: 150,
   },
   logoPlaceholder: {
     width: 120,
