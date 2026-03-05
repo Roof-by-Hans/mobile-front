@@ -4,6 +4,29 @@ import * as tokenStorage from '../utils/tokenStorage';
 import { API_URL, API_TIMEOUT } from '@env';
 
 /**
+ * Sistema de notificación para eventos de autenticación
+ * Permite que el AuthContext sea notificado cuando el token expira
+ */
+let onTokenExpiredListener = null;
+
+/**
+ * Registrar un listener para eventos de token expirado
+ * @param {Function} callback - Función a ejecutar cuando el token expire
+ */
+export const setOnTokenExpiredListener = (callback) => {
+  onTokenExpiredListener = callback;
+};
+
+/**
+ * Notificar que el token ha expirado
+ */
+const notifyTokenExpired = () => {
+  if (onTokenExpiredListener) {
+    onTokenExpiredListener();
+  }
+};
+
+/**
  * Axios instance configured for API requests
  * Base URL: http://localhost:3000/api (configurable via .env)
  * Incluye interceptores para manejo de tokens y reintentos automáticos
@@ -105,7 +128,10 @@ apiClient.interceptors.response.use(
         try {
           await tokenStorage.clearAuth();
           processQueue(new Error('Sesión expirada'), null);
-          // Aquí se podría emitir un evento para que el AuthContext redirija al login
+          
+          // Notificar al AuthContext que el token ha expirado
+          notifyTokenExpired();
+          
           return Promise.reject(new Error('Sesión expirada. Por favor, inicia sesión nuevamente.'));
         } catch (refreshError) {
           processQueue(refreshError, null);

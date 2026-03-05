@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import * as authService from '../services/authService';
+import { setOnTokenExpiredListener } from '../services/apiClient';
 
 const AuthContext = createContext(null);
 
@@ -39,6 +40,26 @@ export const AuthProvider = ({ children }) => {
     };
 
     restoreSession();
+  }, []);
+
+  /**
+   * Configurar listener para token expirado
+   * Cuando el token expire, cerrar sesión automáticamente
+   */
+  useEffect(() => {
+    const handleTokenExpired = () => {
+      console.log('⚠️ Token expirado. Cerrando sesión automáticamente...');
+      setCliente(null);
+      setError('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+    };
+
+    // Registrar el listener
+    setOnTokenExpiredListener(handleTokenExpired);
+
+    // Cleanup: remover el listener cuando el componente se desmonte
+    return () => {
+      setOnTokenExpiredListener(null);
+    };
   }, []);
 
   /**
