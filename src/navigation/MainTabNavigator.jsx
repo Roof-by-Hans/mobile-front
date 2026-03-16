@@ -8,7 +8,6 @@ import { BlurView } from 'expo-blur';
 import { COLORS } from '../constants/theme';
 import HomeScreen from '../screens/HomeScreen';
 import MovimientosScreen from '../screens/MovimientosScreen';
-import DetalleMovimientoScreen from '../screens/DetalleMovimientoScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 
 const Tab = createBottomTabNavigator();
@@ -25,7 +24,6 @@ const MovimientosStack = () => {
       }}
     >
       <Stack.Screen name="MovimientosList" component={MovimientosScreen} />
-      <Stack.Screen name="DetallesMovimiento" component={DetalleMovimientoScreen} />
     </Stack.Navigator>
   );
 };

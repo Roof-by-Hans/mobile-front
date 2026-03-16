@@ -158,7 +158,7 @@ const HomeScreen = ({ navigation }) => {
             <TransactionCard
               key={transaction.id || index}
               transaction={transaction}
-              onPress={() => console.log('Ver detalles:', transaction.id)}
+              onPress={() => navigation.navigate('DetallesMovimiento', { movimiento: transaction })}
             />
           ))
         ) : (
