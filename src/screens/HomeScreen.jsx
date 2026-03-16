@@ -120,7 +120,7 @@ const HomeScreen = ({ navigation }) => {
       {/* Header con avatar y nivel */}
       {renderHeader()}
         <View style={styles.balanceSection}>
-          <View style={styles.balanceCard}>
+          <View style={[styles.balanceCard, Platform.OS === 'android' && styles.balanceCardAndroid]}>
             <Text style={styles.balanceLabel}>SALDO DISPONIBLE</Text>
             <Text style={styles.balanceAmount}>
           ${(resumenCuenta?.saldoActual || 0).toLocaleString('es-AR', {
@@ -267,6 +267,13 @@ const styles = StyleSheet.create({
     shadowRadius: 40,
     elevation: 5,
     height: 210
+  },
+  balanceCardAndroid: {
+    // Android dibuja mal sombras de alto blur sobre fondos translucidos.
+    elevation: 0,
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.02)'
   },
   balanceLabel: {
     fontSize: 12,
