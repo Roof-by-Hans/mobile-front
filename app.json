@@ -2,6 +2,7 @@
   "expo": {
     "name": "mobile-front-temp",
     "slug": "mobile-front-temp",
+    "scheme": "roofcliente",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

@@ -156,6 +156,61 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  /**
+   * Solicitar recuperacion de contrasena para cliente
+   * @param {string} email - Email del cliente
+   * @returns {Promise<Object>} Response data
+   */
+  const forgotPassword = async (email) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const response = await authService.forgotPassword(email);
+
+      if (!response.success) {
+        throw new Error(response.message || 'No se pudo procesar la solicitud');
+      }
+
+      return response;
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || error.message || 'Error al solicitar recuperacion';
+      console.error('❌ Forgot password error:', errorMsg);
+      setError(errorMsg);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /**
+   * Restablecer contrasena con token de recuperacion
+   * @param {string} token - Token de recuperacion
+   * @param {string} contrasenaNueva - Nueva contrasena
+   * @returns {Promise<Object>} Response data
+   */
+  const resetPassword = async (token, contrasenaNueva) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const response = await authService.resetPassword(token, contrasenaNueva);
+
+      if (!response.success) {
+        throw new Error(response.message || 'No se pudo restablecer la contrasena');
+      }
+
+      return response;
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || error.message || 'Error al restablecer la contrasena';
+      console.error('❌ Reset password error:', errorMsg);
+      setError(errorMsg);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const value = {
     cliente,
     isLoading,
@@ -164,6 +219,8 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     register,
+    forgotPassword,
+    resetPassword,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

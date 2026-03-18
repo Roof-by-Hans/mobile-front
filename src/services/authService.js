@@ -78,6 +78,58 @@ export const register = async (clienteData) => {
 };
 
 /**
+ * Solicitar recuperacion de contrasena (cliente)
+ * @param {string} email - Email del cliente
+ * @returns {Promise<Object>} Response: { success, message }
+ */
+export const forgotPassword = async (email) => {
+  try {
+    // Endpoint publico: POST /api/auth-cliente/forgot-password
+    // Response: { success, message }
+    const response = await apiClient.post(
+      '/auth-cliente/forgot-password',
+      { email },
+      {
+        skipAuthToken: true,
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error('Error en forgot password:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+/**
+ * Restablecer contrasena de cliente con token
+ * @param {string} token - Token de recuperacion
+ * @param {string} contrasenaNueva - Nueva contrasena
+ * @returns {Promise<Object>} Response: { success, message }
+ */
+export const resetPassword = async (token, contrasenaNueva) => {
+  try {
+    // Endpoint publico: POST /api/auth-cliente/reset-password
+    // Request: { token, contrasenaNueva }
+    const response = await apiClient.post(
+      '/auth-cliente/reset-password',
+      {
+        token,
+        contrasenaNueva,
+      },
+      {
+        skipAuthToken: true,
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error('Error en reset password:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+/**
  * Cerrar sesión del cliente
  * @returns {Promise<void>}
  */
