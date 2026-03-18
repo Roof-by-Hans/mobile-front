@@ -9,6 +9,23 @@ import DetalleMovimientoScreen from '../screens/DetalleMovimientoScreen';
 
 const Stack = createStackNavigator();
 
+const linking = {
+  prefixes: ['roofcliente://', 'https://app-cliente.tudominio.com'],
+  config: {
+    screens: {
+      Login: 'login',
+      Register: 'register',
+      ForgotPassword: 'forgot-password',
+      ResetPassword: {
+        path: 'reset-password/:token?',
+        parse: {
+          token: (value) => value,
+        },
+      },
+    },
+  },
+};
+
 const AuthenticatedNavigator = () => (
   <Stack.Navigator
     screenOptions={{
@@ -39,7 +56,7 @@ const AppNavigator = () => {
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer linking={linking}>
       {isAuthenticated ? <AuthenticatedNavigator /> : <AuthNavigator />}
     </NavigationContainer>
   );

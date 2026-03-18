@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -15,18 +15,25 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
 import { useAuth } from '../context/AuthContext';
 import { Button, Input, ErrorMessage } from '../components';
-import { COLORS, SPACING, FONT_SIZES, BORDER_RADIUS, FONT_WEIGHTS } from '../constants/theme';
+import { COLORS, SPACING, FONT_SIZES, FONT_WEIGHTS } from '../constants/theme';
 
 /**
  * Login Screen Component
  * Handles user authentication with email/password validation
  * Integrado con backend en http://localhost:3000/api/auth-cliente/login
  */
-const LoginScreen = ({ navigation }) => {
+const LoginScreen = ({ navigation, route }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({ email: '', password: '' });
   const { login, isLoading, error: authError } = useAuth();
+
+  useEffect(() => {
+    if (route?.params?.passwordResetSuccess) {
+      Alert.alert('Listo', 'Contraseña restablecida correctamente. Ya puedes iniciar sesion.');
+      navigation.setParams({ passwordResetSuccess: undefined });
+    }
+  }, [navigation, route?.params?.passwordResetSuccess]);
 
   /**
    * Validate email format
@@ -113,6 +120,13 @@ const LoginScreen = ({ navigation }) => {
     navigation.navigate('Register');
   };
 
+  /**
+   * Navigate to forgot password screen
+   */
+  const goToForgotPassword = () => {
+    navigation.navigate('ForgotPassword');
+  };
+
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
@@ -178,6 +192,9 @@ const LoginScreen = ({ navigation }) => {
           ) : (
             <View style={styles.buttonsContainer}>
               <Button title="Iniciar sesión" onPress={handleLogin} />
+              <TouchableOpacity onPress={goToForgotPassword} style={styles.forgotPasswordLinkContainer}>
+                <Text style={styles.forgotPasswordLink}>Olvide mi contraseña</Text>
+              </TouchableOpacity>
               <View style={styles.registerLinkContainer}>
                 <Text style={styles.registerText}>¿No tienes cuenta? </Text>
                 <TouchableOpacity onPress={goToRegister}>
@@ -195,6 +212,15 @@ const LoginScreen = ({ navigation }) => {
 
 LoginScreen.propTypes = {
   navigation: PropTypes.object.isRequired,
+  route: PropTypes.shape({
+    params: PropTypes.shape({
+      passwordResetSuccess: PropTypes.bool,
+    }),
+  }),
+};
+
+LoginScreen.defaultProps = {
+  route: undefined,
 };
 
 const styles = StyleSheet.create({
@@ -257,6 +283,14 @@ const styles = StyleSheet.create({
   },
   buttonsContainer: {
     gap: SPACING.md,
+  },
+  forgotPasswordLinkContainer: {
+    alignItems: 'center',
+  },
+  forgotPasswordLink: {
+    fontSize: FONT_SIZES.md,
+    color: COLORS.primary,
+    fontWeight: FONT_WEIGHTS.medium,
   },
   registerLinkContainer: {
     flexDirection: 'row',
