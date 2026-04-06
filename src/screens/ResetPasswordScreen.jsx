@@ -5,6 +5,7 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   StatusBar,
   Alert,
   TouchableOpacity,
@@ -152,74 +153,79 @@ const ResetPasswordScreen = ({ navigation, route }) => {
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <View style={styles.content}>
-          <View style={styles.logoContainer}>
-            <Image
-              source={require('../../assets/images/hans-logo.png')}
-              style={styles.logo}
-              resizeMode="contain"
-            />
-          </View>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.content}>
+            <View style={styles.logoContainer}>
+              <Image
+                source={require('../../assets/images/hans-logo.png')}
+                style={styles.logo}
+                resizeMode="contain"
+              />
+            </View>
 
-          <View style={styles.formContainer}>
-            <Text style={styles.title}>Nueva contraseña</Text>
-            <Text style={styles.subtitle}>
-              Ingresa el token que recibiste y define una nueva contraseña para tu cuenta.
-            </Text>
+            <View style={styles.formContainer}>
+              <Text style={styles.title}>Nueva contraseña</Text>
+              <Text style={styles.subtitle}>
+                Ingresa el token que recibiste y define una nueva contraseña para tu cuenta.
+              </Text>
 
-            {requestError ? (
-              <ErrorMessage message={requestError} variant="error" style={styles.errorMessage} />
-            ) : null}
+              {requestError ? (
+                <ErrorMessage message={requestError} variant="error" style={styles.errorMessage} />
+              ) : null}
 
-            <Input
-              placeholder="Nueva contraseña"
-              value={password}
-              onChangeText={(text) => {
-                setPassword(text);
-                if (errors.password) setErrors((prev) => ({ ...prev, password: '' }));
-                if (requestError) setRequestError('');
-              }}
-              secureTextEntry
-              editable={!isLoading}
-              error={errors.password}
-            />
-
-            <Input
-              placeholder="Confirmar contraseña"
-              value={confirmPassword}
-              onChangeText={(text) => {
-                setConfirmPassword(text);
-                if (errors.confirmPassword) {
-                  setErrors((prev) => ({ ...prev, confirmPassword: '' }));
-                }
-                if (requestError) setRequestError('');
-              }}
-              secureTextEntry
-              editable={!isLoading}
-              error={errors.confirmPassword}
-            />
-
-            <View style={styles.buttonsContainer}>
-              <Button
-                title="Guardar nueva contraseña"
-                onPress={handleSubmit}
-                loading={isLoading}
-                disabled={isLoading || !recoveryToken}
+              <Input
+                placeholder="Nueva contraseña"
+                value={password}
+                onChangeText={(text) => {
+                  setPassword(text);
+                  if (errors.password) setErrors((prev) => ({ ...prev, password: '' }));
+                  if (requestError) setRequestError('');
+                }}
+                secureTextEntry
+                editable={!isLoading}
+                error={errors.password}
               />
 
-              <View style={styles.linksContainer}>
-                {!recoveryToken ? (
-                  <Text style={styles.linkHelperText}>
-                    Abre el enlace de recuperacion desde tu correo para continuar.
-                  </Text>
-                ) : null}
-                <TouchableOpacity onPress={() => navigation.navigate('Login')} disabled={isLoading}>
-                  <Text style={styles.secondaryLink}>Volver a login</Text>
-                </TouchableOpacity>
+              <Input
+                placeholder="Confirmar contraseña"
+                value={confirmPassword}
+                onChangeText={(text) => {
+                  setConfirmPassword(text);
+                  if (errors.confirmPassword) {
+                    setErrors((prev) => ({ ...prev, confirmPassword: '' }));
+                  }
+                  if (requestError) setRequestError('');
+                }}
+                secureTextEntry
+                editable={!isLoading}
+                error={errors.confirmPassword}
+              />
+
+              <View style={styles.buttonsContainer}>
+                <Button
+                  title="Guardar nueva contraseña"
+                  onPress={handleSubmit}
+                  loading={isLoading}
+                  disabled={isLoading || !recoveryToken}
+                />
+
+                <View style={styles.linksContainer}>
+                  {!recoveryToken ? (
+                    <Text style={styles.linkHelperText}>
+                      Abre el enlace de recuperacion desde tu correo para continuar.
+                    </Text>
+                  ) : null}
+                  <TouchableOpacity onPress={() => navigation.navigate('Login')} disabled={isLoading}>
+                    <Text style={styles.secondaryLink}>Volver a login</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
           </View>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -247,10 +253,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+  scrollContent: {
+    flexGrow: 1,
+  },
   content: {
     flex: 1,
     paddingHorizontal: SPACING.lg,
     paddingTop: 40,
+    paddingBottom: SPACING.xl,
   },
   logoContainer: {
     alignItems: 'center',
