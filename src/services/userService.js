@@ -28,7 +28,16 @@ export const getClientProfile = async () => {
 
 /**
  * Get account summary for the authenticated client
- * Response: { saldoActual, totalConsumos, totalPagos, ultimoMovimiento, ... }
+ * Response: {
+ *   saldoActual,
+ *   limiteTotal,
+ *   consumidoMes,
+ *   limiteRestante,
+ *   totalConsumos,
+ *   totalPagos,
+ *   ultimoMovimiento,
+ *   ...
+ * }
  * @returns {Promise<Object>} Account summary
  */
 export const getAccountSummary = async () => {
