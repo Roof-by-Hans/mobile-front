@@ -8,7 +8,8 @@ import {
   Pressable,
   Alert,
   StatusBar,
-  Platform
+  Platform,
+  useWindowDimensions
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS, SPACING } from '../constants/theme';
@@ -24,6 +25,7 @@ import { getClientPhotoUrl } from '../utils/helpers';
  * Basado en diseño de Figma: Home Mobile
  */
 const HomeScreen = ({ navigation }) => {
+  const { width: windowWidth } = useWindowDimensions();
   const { cliente } = useAuth();
   const { 
     resumenCuenta, 
@@ -77,6 +79,37 @@ const HomeScreen = ({ navigation }) => {
       ? `${movimientosMesActual} movimientos este mes`
       : 'Sin movimientos este mes';
   }, [actividadReciente]);
+
+  const balanceResponsive = React.useMemo(() => {
+    // Clamp por ancho para evitar recortes en pantallas chicas sin alterar el look general.
+    const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+    const contentWidth = Math.max(windowWidth - SPACING.lg * 2, 280);
+    const isCompact = windowWidth <= 375;
+
+    return {
+      cardHeight: clamp(Math.round(contentWidth * 0.58), 184, 210),
+      cardHorizontalPadding: clamp(Math.round(contentWidth * 0.1), 18, SPACING.xl),
+      cardVerticalPadding: isCompact ? 14 : SPACING.lg,
+      amountFontSize: clamp(Math.round(contentWidth * 0.14), 40, 52),
+      amountLineHeight: clamp(Math.round(contentWidth * 0.145), 42, 54),
+      amountMaxWidth: isCompact ? '96%' : '92%'
+    };
+  }, [windowWidth]);
+
+  const responsiveStyles = React.useMemo(() => {
+    return StyleSheet.create({
+      balanceCard: {
+        height: balanceResponsive.cardHeight,
+        paddingHorizontal: balanceResponsive.cardHorizontalPadding,
+        paddingVertical: balanceResponsive.cardVerticalPadding
+      },
+      balanceAmount: {
+        fontSize: balanceResponsive.amountFontSize,
+        lineHeight: balanceResponsive.amountLineHeight,
+        maxWidth: balanceResponsive.amountMaxWidth
+      }
+    });
+  }, [balanceResponsive]);
 
   /**
    * Maneja errores mostrando mensaje sutil (no bloquear UI)
@@ -162,11 +195,16 @@ const HomeScreen = ({ navigation }) => {
       {/* Header con avatar y nivel */}
       {renderHeader()}
         <View style={styles.balanceSection}>
-          <View style={[styles.balanceCard, Platform.OS === 'android' && styles.balanceCardAndroid]}>
+          <View style={[styles.balanceCard, responsiveStyles.balanceCard, Platform.OS === 'android' && styles.balanceCardAndroid]}>
             <Text style={styles.balanceLabel}>
               {esSuscripcionCredito ? 'LIMITE RESTANTE' : 'SALDO DISPONIBLE'}
             </Text>
-            <Text style={styles.balanceAmount}>
+            <Text
+              style={[styles.balanceAmount, responsiveStyles.balanceAmount]}
+              adjustsFontSizeToFit
+              minimumFontScale={0.82}
+              numberOfLines={1}
+            >
               {formatCurrency(esSuscripcionCredito ? limiteRestante : saldoDisponible)}
             </Text>
 
@@ -300,16 +338,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: 32,
-    paddingHorizontal: SPACING.xl,
-    paddingVertical: SPACING.lg,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: COLORS.shadowGold,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.1,
     shadowRadius: 40,
-    elevation: 5,
-    height: 210
+    elevation: 5
   },
   balanceCardAndroid: {
     // Android dibuja mal sombras de alto blur sobre fondos translucidos.
@@ -327,11 +362,9 @@ const styles = StyleSheet.create({
     textAlign: 'center'
   },
   balanceAmount: {
-    fontSize: 52,
     fontWeight: '300',
     color: COLORS.text.primary,
     letterSpacing: -1.3,
-    lineHeight: 52,
     marginBottom: SPACING.lg,
     textAlign: 'center'
   },
