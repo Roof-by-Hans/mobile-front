@@ -1,6 +1,47 @@
 import { useState, useEffect } from 'react';
 import * as clientService from '../services/clientService';
 
+const DEFAULT_RESUMEN = {
+  saldoActual: 0,
+  limiteTotal: 0,
+  consumidoMes: 0,
+  limiteRestante: 0
+};
+
+/**
+ * Convierte valores monetarios potencialmente nulos/strings a numero seguro.
+ * @param {unknown} value
+ * @returns {number}
+ */
+const toSafeNumber = (value) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+/**
+ * Normaliza el resumen para mantener compatibilidad con contratos anteriores.
+ * @param {Object} rawResumen
+ * @returns {Object}
+ */
+const normalizeResumen = (rawResumen = {}) => {
+  const saldoActual = toSafeNumber(rawResumen.saldoActual);
+  const limiteTotal = toSafeNumber(rawResumen.limiteTotal);
+  const consumidoMes = toSafeNumber(rawResumen.consumidoMes);
+
+  const limiteRestante = rawResumen.limiteRestante == null
+    ? Math.max(limiteTotal - consumidoMes, 0)
+    : toSafeNumber(rawResumen.limiteRestante);
+
+  return {
+    ...DEFAULT_RESUMEN,
+    ...rawResumen,
+    saldoActual,
+    limiteTotal,
+    consumidoMes,
+    limiteRestante
+  };
+};
+
 /**
  * Custom Hook - Dashboard Data
  * Maneja el estado y lógica de obtención de datos del dashboard del cliente
@@ -38,7 +79,7 @@ export const useDashboard = (idCliente) => {
             message: err.message
           });
           hasErrors = true;
-          return { data: { saldoActual: 0 } };
+          return { data: DEFAULT_RESUMEN };
         }),
         clientService.getPerfilCliente().catch(err => {
           console.error('❌ Error en getPerfilCliente:', {
@@ -73,14 +114,15 @@ export const useDashboard = (idCliente) => {
       const resumen = resumenResponse.data || resumenResponse;
       const perfil = perfilResponse.data || perfilResponse;
       const movimientos = movimientosResponse.data || movimientosResponse;
+      const resumenNormalizado = normalizeResumen(resumen);
       
       console.log('📊 Datos procesados:', {
-        resumen,
+        resumen: resumenNormalizado,
         perfil,
         movimientos
       });
       
-      setResumenCuenta(resumen);
+      setResumenCuenta(resumenNormalizado);
       setPerfilCliente(perfil);
       setActividadReciente(Array.isArray(movimientos) ? movimientos : []);
       
@@ -96,7 +138,7 @@ export const useDashboard = (idCliente) => {
     } catch (err) {
       console.error('Error crítico cargando datos del dashboard:', err);
       // Datos de fallback completos
-      setResumenCuenta({ saldoActual: 0, id: idCliente });
+      setResumenCuenta({ ...DEFAULT_RESUMEN, id: idCliente });
       setPerfilCliente({ id: idCliente, nombre: 'Usuario', apellido: '' });
       setActividadReciente([]);
       setError('Error al cargar datos. Por favor, intenta más tarde.');

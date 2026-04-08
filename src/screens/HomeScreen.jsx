@@ -3,7 +3,6 @@ import {
   View, 
   Text, 
   StyleSheet, 
-  ActivityIndicator, 
   ScrollView,
   RefreshControl,
   Pressable,
@@ -12,12 +11,11 @@ import {
   Platform
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { COLORS, SPACING, FONT_SIZES } from '../constants/theme';
+import { COLORS, SPACING } from '../constants/theme';
 import { useAuth } from '../context/AuthContext';
 import { useDashboard } from '../hooks/useDashboard';
 import TransactionCard from '../components/TransactionCard';
-import StatCard from '../components/StatCard';
-import { Avatar, Loading, ErrorMessage, EmptyState } from '../components';
+import { Avatar, Loading, EmptyState } from '../components';
 import { getClientPhotoUrl } from '../utils/helpers';
 
 /**
@@ -35,6 +33,50 @@ const HomeScreen = ({ navigation }) => {
     error, 
     refrescar 
   } = useDashboard(cliente?.id);
+
+  const formatCurrency = React.useCallback((amount) => {
+    const value = Number(amount);
+    const safeValue = Number.isFinite(value) ? value : 0;
+
+    return `$${safeValue.toLocaleString('es-AR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })}`;
+  }, []);
+
+  const tipoSuscripcionTexto = React.useMemo(() => {
+    const rawValue = perfilCliente?.tipoSuscripcion?.tipo || perfilCliente?.tipoSuscripcion?.nombre || '';
+    const safeValue = String(rawValue).trim();
+
+    if (!safeValue) {
+      return '';
+    }
+
+    return safeValue
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toUpperCase();
+  }, [perfilCliente?.tipoSuscripcion?.tipo, perfilCliente?.tipoSuscripcion?.nombre]);
+
+  const esSuscripcionCredito = tipoSuscripcionTexto === 'CREDITO';
+  const limiteTotal = Number.isFinite(Number(resumenCuenta?.limiteTotal)) ? Number(resumenCuenta?.limiteTotal) : 0;
+  const consumidoMes = Number.isFinite(Number(resumenCuenta?.consumidoMes)) ? Number(resumenCuenta?.consumidoMes) : 0;
+  const limiteRestante = Number.isFinite(Number(resumenCuenta?.limiteRestante))
+    ? Number(resumenCuenta?.limiteRestante)
+    : Math.max(limiteTotal - consumidoMes, 0);
+  const saldoDisponible = Number.isFinite(Number(resumenCuenta?.saldoActual)) ? Number(resumenCuenta?.saldoActual) : 0;
+
+  const subtitleSaldoDisponible = React.useMemo(() => {
+    const mesActual = new Date().getMonth();
+    const movimientosMesActual = actividadReciente?.filter(mov => {
+      const fechaMov = new Date(mov.fecha || mov.createdAt);
+      return fechaMov.getMonth() === mesActual;
+    }).length || 0;
+
+    return movimientosMesActual > 0
+      ? `${movimientosMesActual} movimientos este mes`
+      : 'Sin movimientos este mes';
+  }, [actividadReciente]);
 
   /**
    * Maneja errores mostrando mensaje sutil (no bloquear UI)
@@ -121,26 +163,25 @@ const HomeScreen = ({ navigation }) => {
       {renderHeader()}
         <View style={styles.balanceSection}>
           <View style={[styles.balanceCard, Platform.OS === 'android' && styles.balanceCardAndroid]}>
-            <Text style={styles.balanceLabel}>SALDO DISPONIBLE</Text>
+            <Text style={styles.balanceLabel}>
+              {esSuscripcionCredito ? 'LIMITE RESTANTE' : 'SALDO DISPONIBLE'}
+            </Text>
             <Text style={styles.balanceAmount}>
-          ${(resumenCuenta?.saldoActual || 0).toLocaleString('es-AR', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-          })}
+              {formatCurrency(esSuscripcionCredito ? limiteRestante : saldoDisponible)}
             </Text>
-            <Text style={styles.balanceSubtitle}>
-          {(() => {
-            const mesActual = new Date().getMonth();
-            const movimientosMesActual = actividadReciente?.filter(mov => {
-              const fechaMov = new Date(mov.fecha || mov.createdAt);
-              return fechaMov.getMonth() === mesActual;
-            }).length || 0;
-            
-            return movimientosMesActual > 0 
-              ? `${movimientosMesActual} movimientos este mes` 
-              : 'Sin movimientos este mes';
-          })()}
-            </Text>
+
+            {esSuscripcionCredito ? (
+              <View style={styles.creditSummaryContainer}>
+                <Text style={styles.balanceSubtitle}>
+                  CONSUMIDO ESTE MES: {formatCurrency(consumidoMes)}
+                </Text>
+                <Text style={styles.creditLimitText}>
+                  LIMITE TOTAL: {formatCurrency(limiteTotal)}
+                </Text>
+              </View>
+            ) : (
+              <Text style={styles.balanceSubtitle}>{subtitleSaldoDisponible}</Text>
+            )}
           </View>
         </View>
 
@@ -259,8 +300,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: 32,
-    padding: SPACING.xl,
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.lg,
     alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: COLORS.shadowGold,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.1,
@@ -280,8 +323,8 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: COLORS.gray,
     letterSpacing: 1.2,
-    marginTop: 17,
-    marginBottom: SPACING.md
+    marginBottom: SPACING.sm,
+    textAlign: 'center'
   },
   balanceAmount: {
     fontSize: 52,
@@ -289,14 +332,30 @@ const styles = StyleSheet.create({
     color: COLORS.text.primary,
     letterSpacing: -1.3,
     lineHeight: 52,
-    marginBottom: SPACING.xl
+    marginBottom: SPACING.lg,
+    textAlign: 'center'
   },
   balanceSubtitle: {
     fontSize: 12,
     fontWeight: '300',
     color: COLORS.text.muted,
     letterSpacing: 0.3,
-    lineHeight: 16
+    lineHeight: 16,
+    textAlign: 'center'
+  },
+  creditSummaryContainer: {
+    width: '100%',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.sm
+  },
+  creditLimitText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: COLORS.text.secondary,
+    letterSpacing: 0.8,
+    lineHeight: 16,
+    marginTop: SPACING.xs,
+    textAlign: 'center'
   },
   // Activity Section Styles (según Figma)
   activitySection: {

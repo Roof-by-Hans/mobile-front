@@ -9,6 +9,13 @@ import apiClient from './apiClient';
 /**
  * Obtener resumen de cuenta del cliente autenticado
  * Endpoint: GET /api/auth-cliente/resumen
+ * Response esperada: {
+ *   saldoActual,
+ *   limiteTotal,
+ *   consumidoMes,
+ *   limiteRestante,
+ *   ...
+ * }
  * @returns {Promise<Object>} Resumen de cuenta del cliente autenticado
  */
 export const getResumenCuenta = async () => {
