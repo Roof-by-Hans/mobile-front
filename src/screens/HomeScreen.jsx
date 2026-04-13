@@ -1,4 +1,5 @@
 import React from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { 
   View, 
   Text, 
@@ -65,8 +66,19 @@ const HomeScreen = ({ navigation }) => {
   const consumidoMes = Number.isFinite(Number(resumenCuenta?.consumidoMes)) ? Number(resumenCuenta?.consumidoMes) : 0;
   const limiteRestante = Number.isFinite(Number(resumenCuenta?.limiteRestante))
     ? Number(resumenCuenta?.limiteRestante)
-    : Math.max(limiteTotal - consumidoMes, 0);
+    : 0;
   const saldoDisponible = Number.isFinite(Number(resumenCuenta?.saldoActual)) ? Number(resumenCuenta?.saldoActual) : 0;
+  const hasFocusedOnceRef = React.useRef(false);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if (hasFocusedOnceRef.current) {
+        refrescar();
+      } else {
+        hasFocusedOnceRef.current = true;
+      }
+    }, [refrescar])
+  );
 
   const subtitleSaldoDisponible = React.useMemo(() => {
     const mesActual = new Date().getMonth();

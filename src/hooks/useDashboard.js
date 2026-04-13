@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import * as clientService from '../services/clientService';
 
 const DEFAULT_RESUMEN = {
@@ -28,8 +28,9 @@ const normalizeResumen = (rawResumen = {}) => {
   const limiteTotal = toSafeNumber(rawResumen.limiteTotal);
   const consumidoMes = toSafeNumber(rawResumen.consumidoMes);
 
+  // Para crédito, el restante depende de deuda pendiente real (saldoActual).
   const limiteRestante = rawResumen.limiteRestante == null
-    ? Math.max(limiteTotal - consumidoMes, 0)
+    ? Math.max(limiteTotal - saldoActual, 0)
     : toSafeNumber(rawResumen.limiteRestante);
 
   return {
@@ -58,7 +59,7 @@ export const useDashboard = (idCliente) => {
   /**
    * Carga todos los datos del dashboard en paralelo
    */
-  const cargarDatos = async () => {
+  const cargarDatos = useCallback(async () => {
     if (!idCliente) {
       setIsLoading(false);
       return;
@@ -145,19 +146,19 @@ export const useDashboard = (idCliente) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [idCliente]);
 
   /**
    * Refresca los datos del dashboard
    */
-  const refrescar = async () => {
+  const refrescar = useCallback(async () => {
     await cargarDatos();
-  };
+  }, [cargarDatos]);
 
   // Cargar datos al montar y cuando cambie el idCliente
   useEffect(() => {
     cargarDatos();
-  }, [idCliente]);
+  }, [cargarDatos]);
 
   return {
     resumenCuenta,
